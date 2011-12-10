@@ -3,6 +3,7 @@ package de.doering.dwca.flickr;
 import org.gbif.dwc.terms.ConceptTerm;
 import org.gbif.dwc.terms.DwcTerm;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -27,14 +28,17 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FlickrOccurrenceSearch {
+public class FlickrOccurrenceSearch implements Runnable {
   private Logger log = LoggerFactory.getLogger(getClass());
   private Pattern SPLIT_MTAG = Pattern.compile("([a-z]+:[a-z0-9_]+)=(.+)", Pattern.CASE_INSENSITIVE);
   private final int PAGESIZE = 100;
-  private final int MAX_RETRIES = 2;
   private static final String API_KEY = "59c1f626e17ddc0e37160b56d7b21ea3";
   private static final String SECRET = "56cf7af06a966665";
   private static final SearchParameters PARAMS = new SearchParameters();
+  private final int firstPage;
+  private final int increment;
+  private int currPage;
+  private final ImageWriter imgWriter;
 
   private static final Map<String, ConceptTerm> TAG_MAPPING = Maps.newHashMap();
   private Flickr f;
@@ -84,7 +88,18 @@ public class FlickrOccurrenceSearch {
     PARAMS.setSafeSearch(Flickr.SAFETYLEVEL_MODERATE);
   }
 
-  public FlickrOccurrenceSearch() {
+  /**
+   *
+   * @param firstPage the first flickr search currPage to retrieve, 1=first
+   * @param increment to search the next currPage
+   * @param imgWriter
+   */
+  public FlickrOccurrenceSearch(int firstPage, int increment, ImageWriter imgWriter) {
+    this.firstPage = firstPage;
+    this.currPage  = firstPage;
+    this.increment = increment;
+    this.imgWriter = imgWriter;
+
     try {
       Transport transport = new REST();
       f = new Flickr(API_KEY, SECRET, transport);
@@ -93,16 +108,39 @@ public class FlickrOccurrenceSearch {
     }
   }
 
-  public List<FlickrImage> list(int page) {
-    return list(page, 0);
+  @Override
+  public void run() {
+    // call one search after the other until we cant find any more images
+    while(true){
+      List<FlickrImage> images = search();
+      // no more pages?
+      if (images == null){
+        break;
+      }
+      // write images
+      try {
+        imgWriter.writeImages(images);
+      } catch (IOException e) {
+        log.error("Failed to write images of page {}", currPage);
+      }
+      currPage += increment;
+    }
+    log.error("Finishing thread {} with last searched page {}", firstPage, currPage);
   }
 
-  public List<FlickrImage> list(int page, int retries) {
+  /**
+   *
+   * @return list of populated images or null if no more images could be found.
+   */
+  private List<FlickrImage> search() {
     List<FlickrImage> images = Lists.newArrayList();
-
     try {
-      PhotoList list = f.getPhotosInterface().search(PARAMS, PAGESIZE, page);
-      log.debug("Found {} new images on page {}, extracting...", list.size(), page);
+      log.debug("Searching page {}", currPage);
+      PhotoList list = f.getPhotosInterface().search(PARAMS, PAGESIZE, currPage);
+      if (list.isEmpty()){
+        return null;
+      }
+      log.debug("Found {} new images on page {}, extracting...", list.size(), currPage);
       for (Iterator iterator = list.iterator(); iterator.hasNext(); ) {
         Photo photo = (Photo) iterator.next();
         FlickrImage img = extract(photo);
@@ -111,13 +149,7 @@ public class FlickrOccurrenceSearch {
         }
       }
     } catch (Exception e) {
-      if (retries < MAX_RETRIES){
-        log.warn("Failed to search for photo page {} - try another time", page, e);
-        retries++;
-        images = list(page, retries);
-      }else{
-        log.error("Failed to search for photo page {} after "+retries+" retries", page, e);
-      }
+      log.error("Failed to search for photo page {}", currPage, e);
     }
 
     return images;
@@ -172,4 +204,5 @@ public class FlickrOccurrenceSearch {
 
     return map;
   }
+
 }

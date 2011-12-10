@@ -1,10 +1,6 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.ConceptTerm;
-import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.dwc.text.DwcaWriter;
 import org.gbif.metadata.eml.Eml;
 import org.gbif.utils.file.CompressionUtil;
@@ -12,14 +8,9 @@ import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,88 +18,50 @@ import org.slf4j.LoggerFactory;
 public class OccurrenceExport {
 
   private Logger log = LoggerFactory.getLogger(getClass());
-  private FlickrOccurrenceSearch search = new FlickrOccurrenceSearch();
   private DwcaWriter writer;
-  private final ConceptTerm thumbnail = new UnknownTerm("http://flickr.com/terms/smallSquareUrl","smallSquareUrl");
-  private final ConceptTerm flickrid = new UnknownTerm("http://flickr.com/terms/photoId","photoId");
-  private final Cache<String, Integer> cache = CacheBuilder.newBuilder().maximumSize(10000).build(new CacheLoader<String, Integer>() {
-             public Integer load(String key) {
-               return 1;
-             }
-           });
+  private ImageWriter imgWriter;
+  private final int THREADS = 10;
 
   @Inject
   public OccurrenceExport() {
   }
 
   private void export() throws IOException {
-    int page = 0;
-    // search flickr
-    List<FlickrImage> images = search.list(page);
-    while (!images.isEmpty()){
-      // write to archive
-      writeImages(images);
-      // search flickr
-      page++;
-      images = search.list(page);
+		// We will store the threads so that we can check if they are done
+		List<Thread> threads = new ArrayList<Thread>();
+    // setup threads
+    for (int i = 0; i < THREADS; i++) {
+			Runnable searcher = new FlickrOccurrenceSearch(i, THREADS, imgWriter);
+      Thread worker = new Thread(searcher);
+			// We can set the name of the thread
+			worker.setName("searcher"+i);
+			// Start the thread, never call method run() direct
+      log.debug("Starting search thread " + i);
+			worker.start();
+			// Remember the thread for later usage
+			threads.add(worker);
     }
-    log.info("Finished flickr export with {} records and {} search pages", writer.getRecordsWritten(), page+1);
-  }
 
-  private void writeImages(List<FlickrImage> images) throws IOException {
-    log.debug("Writing {} new images to archive with {} records", images.size(), writer.getRecordsWritten());
-    for (FlickrImage img : images){
-      if (img == null) continue;
-      // encountered this image before?
-      if (cache.asMap().containsKey(img.getId())){
-        log.debug("Image {} processed before already", img.getId());
-        continue;
-      }
+		// Wait until all threads are finish
+		int running = 0;
+		do {
       try {
-        cache.get(img.getId());
-      } catch (ExecutionException e) {
-        // ignore, should not happen
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        // TODO: Handle exception
       }
-      writer.newRecord(img.getId());
-      writer.addCoreColumn(DcTerm.source, img.getLink());
-      writer.addCoreColumn(DwcTerm.scientificName, img.getScientificName());
-      writer.addCoreColumn(DwcTerm.basisOfRecord, "HumanObservation");
-      writer.addCoreColumn(DwcTerm.recordedBy, img.getPhotographer());
-
-      // potentially null
-      if (img.getDateRecorded()!=null){
-        writer.addCoreColumn(DwcTerm.eventDate, img.getDateRecorded().toString());
-      }
-      if (img.getLongitude()!=null){
-        writer.addCoreColumn(DwcTerm.decimalLongitude, img.getLongitude().toString());
-      }
-      if (img.getLatitude()!=null){
-        writer.addCoreColumn(DwcTerm.decimalLatitude, img.getLatitude().toString());
-      }
-      if (img.getAccuracy()!=null){
-        writer.addCoreColumn(DwcTerm.coordinatePrecision, img.getAccuracy().toString());
-      }
-      // additional, optional dynamic properties
-      for (ConceptTerm t : img.getAttributes().keySet()){
-        writer.addCoreColumn(t, img.getAttribute(t));
-      }
-
-      // add image extension
-      Map<ConceptTerm, String> data = new HashMap<ConceptTerm, String>();
-      data.put(flickrid,img.getId());
-      data.put(DcTerm.references, img.getLink());
-      data.put(DcTerm.identifier, img.getImage());
-      data.put(thumbnail,img.getThumb());
-      data.put(DcTerm.license, img.getLicense());
-      data.put(DcTerm.rightsHolder, img.getOwner());
-      if (img.getDateRecorded()!=null){
-        data.put(DcTerm.created, img.getDateRecorded().toString());
-      }
-      data.put(DcTerm.title, img.getTitle());
-      data.put(DcTerm.description, img.getDescription());
-      writer.addExtensionRecord(GbifTerm.Image, data);
-    }
+      running = 0;
+			for (Thread thread : threads) {
+				if (thread.isAlive()) {
+					running++;
+				}
+			}
+			//log.debug("We have " + running + " running searches. ");
+		} while (running > 0);
+    log.info("Finished flickr export with {} records", writer.getRecordsWritten());
   }
+
+
 
   public File build() throws IOException {
     // new writer
@@ -116,11 +69,11 @@ public class OccurrenceExport {
     File dwcaZip = new File(dwcaDir.getAbsoluteFile() + ".zip");
     log.info("Writing archive files to temporary folder " + dwcaDir);
     writer = new DwcaWriter(DwcTerm.Occurrence, dwcaDir);
+    imgWriter = new ImageWriter(writer);
 
     // parse file
     export();
 
-    ;
     // finish archive and zip it
     log.info("Bundling archive at {}", dwcaZip);
     writer.setEml(buildEml());
