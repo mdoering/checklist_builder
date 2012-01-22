@@ -9,6 +9,8 @@ import org.gbif.utils.file.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import com.google.inject.Inject;
@@ -20,26 +22,56 @@ public class OccurrenceExport {
   private Logger log = LoggerFactory.getLogger(getClass());
   private DwcaWriter writer;
   private ImageWriter imgWriter;
-  private final int THREADS = 10;
+  private final int MIN_YEAR = 1980;
+  private final int THREADS = 1;
+  private List<Thread> threads = new ArrayList<Thread>();
 
   @Inject
   public OccurrenceExport() {
   }
 
+  private void searchYear(int year){
+    if (threads.size() < THREADS){
+      threads.add(startThread(year));
+    }else{
+      // wait until one thread is finished
+      log.debug("Waiting for a thread to finish");
+      do {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
+        Iterator<Thread> iter = threads.iterator();
+        while (iter.hasNext()){
+          Thread t = iter.next();
+          if (!t.isAlive()) {
+            log.debug("Thread "+t.getName()+ " finished");
+            iter.remove();
+          }
+        }
+      } while (threads.size() == THREADS);
+
+      threads.add(startThread(year));
+    }
+  }
+
+  private Thread startThread(int year){
+    Runnable searcher = new ExtractYear(year, imgWriter);
+    Thread worker = new Thread(searcher);
+    // We can set the name of the thread
+    worker.setName("searcher"+year);
+    // Start the thread, never call method run() direct
+    log.debug("Searching year " + year);
+    worker.start();
+    return worker;
+  }
+
   private void export() throws IOException {
-		// We will store the threads so that we can check if they are done
-		List<Thread> threads = new ArrayList<Thread>();
-    // setup threads
-    for (int i = 0; i < THREADS; i++) {
-			Runnable searcher = new FlickrOccurrenceSearch(i, THREADS, imgWriter);
-      Thread worker = new Thread(searcher);
-			// We can set the name of the thread
-			worker.setName("searcher"+i);
-			// Start the thread, never call method run() direct
-      log.debug("Starting search thread " + i);
-			worker.start();
-			// Remember the thread for later usage
-			threads.add(worker);
+		// loop over years
+    int year = 1900 + new Date().getYear();
+    while (year >= MIN_YEAR){
+      searchYear(year);
+      year--;
     }
 
 		// Wait until all threads are finish
@@ -48,13 +80,12 @@ public class OccurrenceExport {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
-        // TODO: Handle exception
       }
       running = 0;
 			for (Thread thread : threads) {
 				if (thread.isAlive()) {
 					running++;
-				}
+        }
 			}
 			//log.debug("We have " + running + " running searches. ");
 		} while (running > 0);

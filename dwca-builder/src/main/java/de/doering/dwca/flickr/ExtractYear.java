@@ -5,6 +5,7 @@ import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,15 +29,17 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FlickrOccurrenceSearch implements Runnable {
+public class ExtractYear implements Runnable {
   private Logger log = LoggerFactory.getLogger(getClass());
   private Pattern SPLIT_MTAG = Pattern.compile("([a-z]+:[a-z0-9_]+)=(.+)", Pattern.CASE_INSENSITIVE);
   private final int PAGESIZE = 100;
+  private final int MAX_PAGES = 10;
   private static final String API_KEY = "59c1f626e17ddc0e37160b56d7b21ea3";
   private static final String SECRET = "56cf7af06a966665";
-  private static final SearchParameters PARAMS = new SearchParameters();
-  private final int firstPage;
-  private final int increment;
+  private final SearchParameters PARAMS = new SearchParameters();
+  private final int year;
+  private Date minSearched;
+  private int pagesSearched = 0;
   private int currPage;
   private final ImageWriter imgWriter;
 
@@ -50,13 +53,6 @@ public class FlickrOccurrenceSearch implements Runnable {
   }
 
   static {
-    String[] x = {"darwincore:scientificname","dwc:scientificname","taxonomy:binomial","taxonomy:trinomial","taxonomy:binominal","taxonomy:latinname"};
-    List<String> tags = Lists.newArrayList();
-    for (String t : x){
-      tags.add(t+"=");
-      TAG_MAPPING.put(t, DwcTerm.scientificName);
-    }
-
     addTagMappings(DwcTerm.scientificNameAuthorship, "darwincore:scientificNameAuthorship","dwc:scientificNameAuthorship","taxonomy:author","taxonomy:authority","taxonomy:author");
     addTagMappings(DwcTerm.kingdom, "darwincore:kingdom","dwc:kingdom","taxonomy:kingdom","taxonomy:domain");
     addTagMappings(DwcTerm.phylum, "darwincore:phylum","dwc:phylum","taxonomy:phylum");
@@ -72,32 +68,17 @@ public class FlickrOccurrenceSearch implements Runnable {
     addTagMappings(DwcTerm.decimalLatitude, "darwincore:decimalLatitude","dwc:decimalLatitude","taxonomy:decimalLatitude","geo:lat");
     addTagMappings(DwcTerm.decimalLongitude, "darwincore:decimalLongitude","dwc:decimalLongitude","taxonomy:decimalLongitude","geo:lon");
     addTagMappings(DwcTerm.maximumElevationInMeters, "darwincore:maximumElevationInMeters","dwc:maximumElevationInMeters", "darwincore:minimumElevationInMeters","dwc:minimumElevationInMeters","geo:alt","geo:altitude");
-
-    PARAMS.setMachineTags(tags.toArray(new String[tags.size()]));
-    PARAMS.setLicense("1,2,3,4,5,6");
-    Set<String> extras = Sets.newHashSet();
-    extras.add("description");
-    extras.add("date_taken");
-    extras.add("owner_name");
-    extras.add("license");
-    extras.add("geo");
-    extras.add("url_sq");
-    extras.add("url_o");
-    extras.add("url_l");
-    PARAMS.setExtras(extras);
-    PARAMS.setSafeSearch(Flickr.SAFETYLEVEL_MODERATE);
   }
+
 
   /**
    *
-   * @param firstPage the first flickr search currPage to retrieve, 1=first
-   * @param increment to search the next currPage
+   * @param year the year to scan
    * @param imgWriter
    */
-  public FlickrOccurrenceSearch(int firstPage, int increment, ImageWriter imgWriter) {
-    this.firstPage = firstPage;
-    this.currPage  = firstPage;
-    this.increment = increment;
+  public ExtractYear(int year, ImageWriter imgWriter) {
+    this.year = year;
+    this.currPage  = 1;
     this.imgWriter = imgWriter;
 
     try {
@@ -106,6 +87,31 @@ public class FlickrOccurrenceSearch implements Runnable {
     } catch (ParserConfigurationException e) {
       throw new IllegalStateException("Cant init flickr");
     }
+
+    String[] x = {"darwincore:scientificname","dwc:scientificname","taxonomy:binomial","taxonomy:trinomial","taxonomy:binominal","taxonomy:latinname"};
+    List<String> tags = Lists.newArrayList();
+    for (String t : x){
+      tags.add(t+"=");
+      TAG_MAPPING.put(t, DwcTerm.scientificName);
+    }
+    PARAMS.setMachineTags(tags.toArray(new String[tags.size()]));
+    PARAMS.setSafeSearch(Flickr.SAFETYLEVEL_MODERATE);
+    PARAMS.setLicense("1,2,3,4,5,6");
+    Set<String> extras = Sets.newHashSet();
+    extras.add("description");
+    extras.add("date_upload");
+    extras.add("date_taken");
+    extras.add("date_added");
+    extras.add("owner_name");
+    extras.add("license");
+    extras.add("geo");
+    extras.add("url_sq");
+    extras.add("url_o");
+    extras.add("url_l");
+    PARAMS.setExtras(extras);
+    PARAMS.setMinUploadDate(new Date(year-1900,0,1));
+    PARAMS.setMaxUploadDate(new Date(year-1899,0,1));
+    PARAMS.setSort(SearchParameters.DATE_POSTED_DESC);
   }
 
   @Override
@@ -121,11 +127,17 @@ public class FlickrOccurrenceSearch implements Runnable {
       try {
         imgWriter.writeImages(images);
       } catch (IOException e) {
-        log.error("Failed to write images of page {}", currPage);
+        log.error("Failed to write images of page {}", pagesSearched);
       }
-      currPage += increment;
+      pagesSearched++;
+      currPage++;
+      if (currPage==MAX_PAGES){
+        // modify search, set new minimum upload date
+        currPage=1;
+        PARAMS.setMaxUploadDate(minSearched);
+      }
     }
-    log.error("Finishing thread {} with last searched page {}", firstPage, currPage);
+    log.info("Finishing year {} with {} searched page in total", year, pagesSearched);
   }
 
   /**
@@ -135,14 +147,22 @@ public class FlickrOccurrenceSearch implements Runnable {
   private List<FlickrImage> search() {
     List<FlickrImage> images = Lists.newArrayList();
     try {
-      log.debug("Searching page {}", currPage);
+      log.debug("Searching page {}", pagesSearched);
       PhotoList list = f.getPhotosInterface().search(PARAMS, PAGESIZE, currPage);
       if (list.isEmpty()){
         return null;
       }
-      log.debug("Found {} new images on page {}, extracting...", list.size(), currPage);
+      log.debug("Found {} new images on page {}, extracting...", list.size(), pagesSearched);
       for (Iterator iterator = list.iterator(); iterator.hasNext(); ) {
         Photo photo = (Photo) iterator.next();
+        // remember date uploaded
+        Date newPosted = photo.getDatePosted();
+        if (minSearched!=null && newPosted.after(minSearched)){
+          log.warn("Date posted {} AFTER last date {}", newPosted, minSearched);
+        } else {
+          minSearched = newPosted;
+        }
+
         FlickrImage img = extract(photo);
         if (img!=null && !Strings.isNullOrEmpty(img.getScientificName())){
           images.add(img);

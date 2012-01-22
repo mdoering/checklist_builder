@@ -8,6 +8,7 @@ import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.dwc.text.DwcaWriter;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,19 @@ public class ImageWriter {
     this.writer = writer;
   }
 
+  public boolean isNewImage(String id){
+    if (cache.asMap().containsKey(id)){
+      return false;
+    }
+    return true;
+  }
+
   public synchronized void writeImages(List<FlickrImage> images) throws IOException {
-    log.debug("Writing {} new images to archive with {} records", images.size(), writer.getRecordsWritten());
+    long recordsAtStart = writer.getRecordsWritten();
     for (FlickrImage img : images){
       if (img == null) continue;
       // encountered this image before?
-      if (cache.asMap().containsKey(img.getId())){
-        log.debug("Image {} processed before already", img.getId());
+      if (!isNewImage(img.getId())){
         continue;
       }
       try {
@@ -48,7 +55,6 @@ public class ImageWriter {
       } catch (ExecutionException e) {
         // ignore, should not happen
       }
-      log.debug("IMG-"+img.getId());
       writer.newRecord(img.getId());
       writer.addCoreColumn(DcTerm.source, img.getLink());
       writer.addCoreColumn(DwcTerm.scientificName, img.getScientificName());
@@ -88,5 +94,11 @@ public class ImageWriter {
       data.put(DcTerm.description, img.getDescription());
       writer.addExtensionRecord(GbifTerm.Image, data);
     }
+    log.debug("Written {} new images out of {} new candidates to archive with "+ writer.getRecordsWritten() +" records", (writer.getRecordsWritten()-recordsAtStart), images.size());
   }
+
+  public static void main(String[] args) throws IOException {
+    System.out.println(new Date().getTime());
+  }
+
 }
