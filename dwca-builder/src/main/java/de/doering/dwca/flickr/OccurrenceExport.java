@@ -23,7 +23,7 @@ public class OccurrenceExport {
   private DwcaWriter writer;
   private ImageWriter imgWriter;
   private final int MIN_YEAR = 1980;
-  private final int THREADS = 1;
+  private final int THREADS = 20;
   private List<Thread> threads = new ArrayList<Thread>();
 
   @Inject
