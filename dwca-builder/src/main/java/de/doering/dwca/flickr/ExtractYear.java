@@ -39,7 +39,6 @@ public class ExtractYear implements Runnable {
   private final SearchParameters PARAMS = new SearchParameters();
   private final int year;
   private Date minSearched;
-  private int pagesSearched = 0;
   private int currPage;
   private final ImageWriter imgWriter;
 
@@ -101,7 +100,6 @@ public class ExtractYear implements Runnable {
     extras.add("description");
     extras.add("date_upload");
     extras.add("date_taken");
-    extras.add("date_added");
     extras.add("owner_name");
     extras.add("license");
     extras.add("geo");
@@ -127,18 +125,19 @@ public class ExtractYear implements Runnable {
       try {
         imgWriter.writeImages(images);
       } catch (IOException e) {
-        log.error("Failed to write images of page {}", pagesSearched);
+        log.error("Failed to write images of page {}", currPage);
       }
-      pagesSearched++;
       currPage++;
-      if (currPage==MAX_PAGES){
+      if (currPage % MAX_PAGES == 0){
         // modify search, set new minimum upload date
-        currPage=1;
         PARAMS.setMaxUploadDate(minSearched);
+        log.info("Rebuild query with maxUploadDate={}", minSearched);
       }
     }
-    log.info("Finishing year {} with {} searched page in total", year, pagesSearched);
+    log.info("Finishing year {} with {} searched page in total", year, currPage);
   }
+
+
 
   /**
    *
@@ -147,19 +146,17 @@ public class ExtractYear implements Runnable {
   private List<FlickrImage> search() {
     List<FlickrImage> images = Lists.newArrayList();
     try {
-      log.debug("Searching page {}", pagesSearched);
+      log.debug("Searching page {}", currPage);
       PhotoList list = f.getPhotosInterface().search(PARAMS, PAGESIZE, currPage);
       if (list.isEmpty()){
         return null;
       }
-      log.debug("Found {} new images on page {}, extracting...", list.size(), pagesSearched);
+      log.debug("Found {} new images on page {}, extracting...", list.size(), currPage);
       for (Iterator iterator = list.iterator(); iterator.hasNext(); ) {
         Photo photo = (Photo) iterator.next();
         // remember date uploaded
         Date newPosted = photo.getDatePosted();
-        if (minSearched!=null && newPosted.after(minSearched)){
-          log.warn("Date posted {} AFTER last date {}", newPosted, minSearched);
-        } else {
+        if (minSearched==null || newPosted.before(minSearched)){
           minSearched = newPosted;
         }
 

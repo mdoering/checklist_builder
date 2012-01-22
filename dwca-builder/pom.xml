@@ -36,7 +36,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>org.tdwg.dwca.wikipedia.WikipediaParser</mainClass>
+              <mainClass>de.doering.dwca.flickr.OccurrenceExport</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -46,10 +46,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <excludes>
-            <exclude>**/manualtests/**</exclude>
-            <exclude>**/TestConstants.java</exclude>
-          </excludes>
           <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
         </configuration>
       </plugin>
@@ -113,7 +109,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.1</version>
+      <version>1.6.4</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -163,6 +159,8 @@
       <artifactId>guava</artifactId>
       <version>10.0.1</version>
     </dependency>
+
+    <!-- source specifics -->
     <dependency>
       <groupId>com.aetrion.flickr</groupId>
       <artifactId>flickrapi</artifactId>
@@ -172,6 +170,11 @@
       <groupId>org.ccil.cowan.tagsoup</groupId>
       <artifactId>tagsoup</artifactId>
       <version>1.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-arq</artifactId>
+      <version>2.9.0-incubating</version>
     </dependency>
 
   </dependencies>
