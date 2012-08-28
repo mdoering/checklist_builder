@@ -36,7 +36,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>de.doering.dwca.flickr.OccurrenceExport</mainClass>
+              <mainClass>de.doering.dwca.arkive.ChecklistBuilder</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -200,6 +200,11 @@
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
       <version>1.9.7</version>
+    </dependency>
+    <dependency>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>9.1-901.jdbc4</version>
     </dependency>
   </dependencies>
 </project>

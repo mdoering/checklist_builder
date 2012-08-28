@@ -51,6 +51,7 @@ public class ChecklistBuilder {
 
   // config
   private static final int MAX_IMAGES_PER_SPECIES = 100;
+  private static final int LOG_INTERVALL = 1000;
   private static final String API_KEY = "GWDG7LURAX";
   private static final String DB_URL = "jdbc:postgresql://boma.gbif.org:5432/clb-indexing";
   private static final String DB_USER = "portal";
@@ -191,7 +192,7 @@ public class ChecklistBuilder {
       log.info("Iterate over nub species");
       while (res.next()) {
         String name = res.getString(1);
-        if (count % 10 == 0) {
+        if (count % LOG_INTERVALL == 0) {
           log.debug("{} names found with {} images out of {} searched nub names", new Object[]{usageCounter, imageCounter, count});
         }
         findSpecies(name);
