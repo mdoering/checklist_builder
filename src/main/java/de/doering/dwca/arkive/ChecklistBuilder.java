@@ -83,8 +83,6 @@ public class ChecklistBuilder {
   private int imageCounter;
 
   private void findSpecies(String name) {
-    log.debug(name);
-
     String url = WEBSERVICE.replace("{SPECIES}", name.replace(" ", "%20"));
     try {
       HttpUtil.Response resp = http.get(url);
