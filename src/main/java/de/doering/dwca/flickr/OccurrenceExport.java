@@ -127,7 +127,7 @@ public class OccurrenceExport {
     eml.setAbstract("A full dump of all public flickr images that are machine tagged with a species name. "
                     + "Only images with using various open creative commons licenses are included. "
                     + "Machine tags recognised include the EOL taxonomy namespace and the dwc/darwincore namespace.");
-    eml.setHomeUrl("http://www.flickr.com");
+    eml.setHomepageUrl("http://www.flickr.com");
     org.gbif.metadata.eml.Agent contact = new org.gbif.metadata.eml.Agent();
     contact.setFirstName("Markus");
     contact.setLastName("Döring");

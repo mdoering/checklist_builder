@@ -102,7 +102,7 @@ public class ChecklistBuilder {
     eml.setTitle("Global Invasive Species Database", "en");
     eml.setAbstract(
       "The Global Invasive Species Database is a free, online searchable source of information about species that negatively impact biodiversity. The GISD aims to increase public awareness about invasive species and to facilitate effective prevention and management activities by disseminating specialist’s knowledge and experience to a broad global audience. It focuses on invasive alien species that threaten native biodiversity and covers all taxonomic groups from micro-organisms to animals and plants.");
-    eml.setHomeUrl("http://www.invasivespecies.net");
+    eml.setHomepageUrl("http://www.invasivespecies.net");
     eml.setLogoUrl("http://www.issg.org/picts/issg_logo.gif");
     org.gbif.metadata.eml.Agent contact = new org.gbif.metadata.eml.Agent();
     contact.setFirstName("Michael");

@@ -89,13 +89,28 @@
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
+      <artifactId>gbif-httputils</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.7-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common-api</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>dwc-api</artifactId>
+      <version>1.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwca-reader</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.12-SNAPSHOT</version>
     </dependency>
 
     <!-- Guice -->
@@ -109,7 +124,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.4</version>
+      <version>1.6.5</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -157,7 +172,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>10.0.1</version>
+      <version>12.0</version>
     </dependency>
 
     <!-- source specifics -->
@@ -176,6 +191,15 @@
       <artifactId>jena-arq</artifactId>
       <version>2.9.0-incubating</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.9.7</version>
+    </dependency>
   </dependencies>
 </project>

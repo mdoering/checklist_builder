@@ -179,7 +179,7 @@ public class ChecklistBuilder {
     // compress
     CompressionUtil.zipDir(dwcaDir, dwcaZip);
     // remove temp folder
-    //org.apache.commons.io.FileUtils.deleteDirectory(dwcaDir);
+    org.apache.commons.io.FileUtils.deleteDirectory(dwcaDir);
 
     log.info("Dwc archive completed at {} !", dwcaZip);
 

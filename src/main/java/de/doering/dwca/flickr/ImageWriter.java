@@ -12,11 +12,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,21 +23,17 @@ public class ImageWriter {
   private final DwcaWriter writer;
   private final ConceptTerm thumbnail = new UnknownTerm("http://flickr.com/terms/smallSquareUrl","smallSquareUrl");
   private final ConceptTerm flickrid = new UnknownTerm("http://flickr.com/terms/photoId","photoId");
-  private final Cache<String, Integer> cache = CacheBuilder.newBuilder().maximumSize(10000).build(new CacheLoader<String, Integer>() {
-             public Integer load(String key) {
-               return 1;
-             }
-           });
+  private final Cache<String, Integer> cache = CacheBuilder.newBuilder().maximumSize(10000).build();
 
   public ImageWriter(DwcaWriter writer) {
     this.writer = writer;
   }
 
   public boolean isNewImage(String id){
-    if (cache.asMap().containsKey(id)){
-      return false;
+    if (cache.getIfPresent(id) == null) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   public synchronized void writeImages(List<FlickrImage> images) throws IOException {
@@ -50,11 +44,9 @@ public class ImageWriter {
       if (!isNewImage(img.getId())){
         continue;
       }
-      try {
-        cache.get(img.getId());
-      } catch (ExecutionException e) {
-        // ignore, should not happen
-      }
+      // remember weve seen the image
+      cache.put(img.getId(), 1);
+
       writer.newRecord(img.getId());
       writer.addCoreColumn(DcTerm.source, img.getLink());
       writer.addCoreColumn(DwcTerm.scientificName, img.getScientificName());
