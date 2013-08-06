@@ -30,7 +30,9 @@
     </encoder>
   </appender>
 
-  <root level="DEBUG">
+  <logger name="de.doering.dwca" level="DEBUG"/>
+
+  <root level="INFO">
     <appender-ref ref="CONSOLE"/>
   </root>
 

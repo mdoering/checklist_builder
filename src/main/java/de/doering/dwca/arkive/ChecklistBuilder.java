@@ -15,7 +15,7 @@
  */
 package de.doering.dwca.arkive;
 
-import org.gbif.api.model.Image;
+import org.gbif.api.model.checklistbank.Image;
 import org.gbif.dwc.terms.ConceptTerm;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;

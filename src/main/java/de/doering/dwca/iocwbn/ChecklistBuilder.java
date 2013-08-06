@@ -43,30 +43,44 @@ public class ChecklistBuilder {
 
   private Logger log = LoggerFactory.getLogger(getClass());
   private DwcaWriter writer;
-  private static final String VERSION = "2.10";
-  private static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/ioc-names-{VERSION}.xml";
+  private static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/master_ioc-names_xml.xml";
   private static final String ENCODING = "UTF-8";
   // metadata
+  private static final String VERSION = "3.4";
   private static final String HOMEPAGE = "http://www.worldbirdnames.org";
   private static final String LANGUAGE = "en";
-  private static final String LOGO = "http://www.worldbirdnames.org/img/logo7.jpg";
-  private static final String BIRD = "http://www.worldbirdnames.org/img/hdr7.jpg";
-  private static final String DESCRIPTION = "This initiative provides a set of unique English-language names for the extant species of the birds of the world. The names are based on a consensus of leading ornithologists worldwide and conform to standard rules of construction.<br/><br/>The English names recommended here are:<br/><br/>based on explicit guidelines and spelling rules<br/>selected to involve minimal use of hyphens for group names<br/>anglicized without glottal stops, accents, and the like<br/>based on interregional agreement and global consensus, with compromises<br/>selected with deference to long-established names<br/>aligned with current species taxonomy<br/>available for general adoption<br/>sponsored and endorsed by the IOC and by committee members<br/>This was a volunteer, community effort on behalf of the International Ornithological Congress (IOC).<br/><br/>Commissioned in 1991, the project took 15 years to complete. All participants gave freely and generously of their valuable time and resources. We waived royalty rights and subsidized the publication of the work to maximize its quality and affordability.<br/><br/>Wide dissemination, use, and improvement of the recommended International English names are our only goals. Gratis license to use this list in derivative works can be obtained by writing Frank Gill, P.O. Box 428 , Rushland PA 18956.<br/><br/>In the spirit of realized humility, we dedicate this work to Burt L. Monroe Jr. We just finished the first phase of what he started.<br/><br/>Frank Gill and Minturn Wright <br/>Co-chairs, IOC Standing Committee on English Names  <br/>April 2007";
+  private static final String LOGO = "http://www.worldbirdnames.org/img/hdr7.jpg";
   private static final String CONTACT_FIRSTNAME = "Frank";
   private static final String CONTACT_LASTNAME = "Gill";
   private static final String CONTACT_LINK = "http://en.wikipedia.org/wiki/Frank_Gill_%28ornithologist%29";
+  private static final String LICENSE = "Creative Commons Attribution 3.0 Unported License";
+  private static final String TITLE = "IOC World Bird List, version " + VERSION;
+  private static final String DESCRIPTION = "<p>The initial goal of the IOC World Bird List project was to compile a set of unique English-language names for the extant species of the birds of the world.</p>\n"
+                                            + "<p>Launched initially in 1990 and restarted in 1994 after the loss of our colleague Burt L. Monroe Jr,  the project took 15 years to complete. All participants gave freely and generously of their valuable time and resources. This was a volunteer effort of the ornithological community on behalf of the International Ornithological Congress (IOC).</p>\n"
+                                            + "<p>The first product – a list of  English names  in Birds of the World, Recommended English Names (Princeton University Press, 2006) – was based on a consensus of leading ornithologists worldwide and conformed to standard rules of construction, namely</p>\n"
+                                            + "<ul>\n" + " <li>based on explicit guidelines and spelling rules</li>\n"
+                                            + " <li>selected to involve minimal use of hyphens for group names</li>\n"
+                                            + " <li>anglicized without glottal stops, accents, and the like</li>\n"
+                                            + " <li>based on interregional agreement and global consensus, with compromises</li>\n"
+                                            + " <li>selected with deference to long-established names</li>\n"
+                                            + " <li>aligned with current species taxonomy</li>\n"
+                                            + " <li>available for general adoption</li>\n"
+                                            + " <li>sponsored and endorsed by the IOC and by committee members</li>\n"
+                                            + "</ul>\n"
+                                            + "The project continues as a work in progress that compiles the taxonomy of world birds as well as their English names</p>\n"
+                                            + "<p>Frank Gill, David Donsker &  Minturn Wright, April 2007, 2012</p>\n"
+                                            + "<p>Co-chairs, IOC Standing Committee on English Names</p>";
 
   @Inject
   public ChecklistBuilder() {
   }
 
   private void parsePage(Eml eml) throws IOException, SAXException, ParserConfigurationException {
-    // get webapge
-    String url = XML_DOWNLOAD.replace("{VERSION}", VERSION);
-    log.info("Downloading latest IOC world bird list from {}", url);
+    // get xml data
+    log.info("Downloading latest IOC world bird list from {}", XML_DOWNLOAD);
 
     DefaultHttpClient client = new DefaultHttpClient();
-    HttpGet get = new HttpGet(url);
+    HttpGet get = new HttpGet(XML_DOWNLOAD);
 
     // execute
     HttpResponse response = client.execute(get);
@@ -93,6 +107,7 @@ public class ChecklistBuilder {
 
     // metadata
     Eml eml = new Eml();
+    eml.setTitle(TITLE);
     eml.setDescription(DESCRIPTION);
     eml.setLanguage(LANGUAGE);
     eml.setHomepageUrl(HOMEPAGE);
@@ -102,6 +117,7 @@ public class ChecklistBuilder {
     contact.setLastName(CONTACT_LASTNAME);
     contact.setHomepage(CONTACT_LINK);
     eml.setContact(contact);
+    eml.setIntellectualRights(LICENSE);
     // parse file and some metadata
     parsePage(eml);
 
