@@ -14,8 +14,10 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -33,9 +35,9 @@ public class IPNICrawler implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(IPNICrawler.class);
     private static final String DELIMITER = "%";
     private static final String WILDCARD = "*";
-    private static final int HEADER_ROWS = 1;
-    private static final int ID_COLUMN = ArchiveBuilder.COL_ID;
     private static final int FAMILY_COLUMN = 17;
+    private static final int COL_BASIONYM = 24;
+    private static final int COL_REPL_SYNONYM = 25;
     private static final String SEARCH = "http://www.ipni.org/ipni/advPlantNameSearch.do?" +
             "output_format=delimited" +
             "&query_type=by_query" +
@@ -43,8 +45,12 @@ public class IPNICrawler implements Runnable {
             "&find_family={family}" +
             "&find_genus={genus}";
     private static final Set<String> LARGE_FAMILIES = Sets.newHashSet("Asteraceae", "Fabaceae", "Orchidaceae");
+    private static final Pattern REPLACE_LEADING_FAMILY = Pattern.compile("");
+    private static final Joiner JOINER = Joiner.on(DELIMITER).useForNull("");
+
     enum RANK_PARAM {ALL, FAM, INFRAFAM, GEN, INFRAGEN, SPEC, INFRASPEC};
     enum SOURCE {IK, GCI, APNI};
+
     private final CloseableHttpClient client;
     private final List<Character> atoz = Lists.newArrayList();
     private final Set<String> families;
@@ -189,8 +195,18 @@ public class IPNICrawler implements Runnable {
                         if (StringUtils.isBlank(line)) continue;
                         // skip header lines
                         if (line.startsWith("Id%")) continue;
+                        // remove family from basionym name
+                        String[] row = line.split(DELIMITER);
+                        if (row[COL_BASIONYM] != null) {
+                            if (row[COL_BASIONYM].toLowerCase().startsWith("basionym not")) {
+                                row[COL_BASIONYM] = null;
+                            } else {
+                                // remove prepended family
+                                row[COL_BASIONYM] = REPLACE_LEADING_FAMILY.matcher(row[COL_BASIONYM]).replaceFirst("");
+                            }
+                        }
                         // prepend dataset column
-                        writer.write(entry.getKey().name() + DELIMITER + line + '\n');
+                        writer.write(entry.getKey().name() + DELIMITER + JOINER.join(row) + '\n');
                     }
                 }
             }

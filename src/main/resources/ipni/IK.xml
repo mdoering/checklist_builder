@@ -1,0 +1,31 @@
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.0.2/eml.xsd"
+         xml:lang="en">
+
+    <dataset>
+        <title>Index Kewensis</title>
+        <creator>
+            <organizationName>Royal Botanic Gardens, Kew</organizationName>
+            <electronicMailAddress>ipnifeedback@ipni.org</electronicMailAddress>
+        </creator>
+        <language>en</language>
+        <abstract>
+            <para>Since 1885, the Royal Botanic Gardens, Kew, has been indexing names of seed plants at the level of genus and species published since 1753, and of all ranks from family downward since supplement 16, and making them available in a series of bound volumes, the Index Kewensis.
+                Charles Darwin provided funds for the initial indexing effort which attempted to capture all names back to 1753.
+                Darwin realized the great need for a list of plant names with bibliographic details of where they were originally published and, since then, generations of biologists and systematists have found the Index Kewensis an indispensable resource for botanical research.
+                The original two volumes of Index Kewensis contained nearly 400,000 names.
+                Some 6,000 additional names are added annually and hard-copy supplements are published at 5-yearly intervals.
+                The most recent supplement was the twentieth which was published in 1996.
+                Since 1971, records of infraspecific names of plants have also been included in this index and since 1997 details of type specimens have been recorded.
+                The whole Index Kewensis, now totalling over one million records, has been available in electronic form to staff and visitors at Kew for many years.
+                However, until the launch of IPNI, the only widely available digital format for this data was CD-ROM.
+                Most volumes of Index Kewensis are still available as hard copy.</para>
+        </abstract>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://www.ipni.org/ik_blurb.html</url>
+            </online>
+        </distribution>
+    </dataset>
+</eml:eml>

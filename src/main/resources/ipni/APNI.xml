@@ -1,0 +1,21 @@
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.0.2/eml.xsd"
+         xml:lang="en">
+
+    <dataset>
+        <title>Australian Plant Names Index (APNI)</title>
+        <creator>
+            <organizationName>Australian National Herbarium</organizationName>
+        </creator>
+        <language>en</language>
+        <abstract>
+            <para>Over 63,000 records have come from the Australian Plant Names Index which has been compiled since 1973 and includes all scientific names used in the literature for Australian vascular plants. Levels of detail and validation are higher for this index than for the IK or the GI. Most names have been checked back to their original place of publication and type information is included for each name. APNI includes many names not included in the IK, especially of Australian infraspecific taxa, and, as in the case of the Gray Index, overlap in coverage between IK and APNI offers scope for checking data and eliminating errors.</para>
+        </abstract>
+        <distribution scope="document">
+            <online>
+                <url function="information">http://www.cpbr.gov.au/apni/index.html</url>
+            </online>
+        </distribution>
+    </dataset>
+</eml:eml>
