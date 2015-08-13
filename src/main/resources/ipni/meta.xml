@@ -1,0 +1,26 @@
+<archive xmlns="http://rs.tdwg.org/dwc/text/" metadata="eml.xml">
+    <core encoding="utf-8" fieldsTerminatedBy="%" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
+        <files>
+            <location>names.txt</location>
+        </files>
+        <id index="1" />
+        <field default="Plantae" term="http://rs.tdwg.org/dwc/terms/kingdom"/>
+        <field index="0" term="http://rs.tdwg.org/dwc/terms/datasetID"/>
+        <field index="2" term="http://rs.tdwg.org/dwc/terms/family"/>
+        <field index="11" term="http://rs.tdwg.org/dwc/terms/taxonRank"/>
+        <field index="12" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship"/>
+        <field index="16" term="http://rs.tdwg.org/dwc/terms/scientificName"/>
+        <field index="19" term="http://rs.tdwg.org/dwc/terms/namePublishedIn"/>
+        <field index="22" term="http://rs.tdwg.org/dwc/terms/taxonRemarks"/>
+        <field index="24" term="http://rs.tdwg.org/dwc/terms/originalNameUsage"/>
+        <field index="25" term="http://ipni.org/terms/replacedSynonym"/>
+    </core>
+    <extension encoding="utf-8" fieldsTerminatedBy="%" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
+        <files>
+            <location>names.txt</location>
+        </files>
+        <coreid index="1" />
+        <field default="type" term="http://rs.tdwg.org/dwc/terms/typeStatus"/>
+        <field index="50" term="http://rs.tdwg.org/dwc/terms/scientificName"/>
+    </extension>
+</archive>

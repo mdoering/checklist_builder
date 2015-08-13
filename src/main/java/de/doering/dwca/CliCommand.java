@@ -5,6 +5,7 @@ import org.gbif.cli.Command;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import de.doering.dwca.ipni.ArchiveBuilder;
 import org.kohsuke.MetaInfServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,14 @@ public class CliCommand extends BaseCommand {
     @Override
     protected void doRun() {
         Injector inj = Guice.createInjector(new CliModule(cfg));
-        Runnable builder = inj.getInstance(cfg.builderClass());
         LOG.info("Building {} checklist", cfg.source);
-        builder.run();
+        if (cfg.source.equalsIgnoreCase("ipnitest")) {
+            ArchiveBuilder ipni = new ArchiveBuilder(cfg, "Linaceae", "Siphonodontaceae", "Stylidiceae");
+            ipni.run();
+        } else {
+            Runnable builder = inj.getInstance(cfg.builderClass());
+            builder.run();
+        }
         LOG.info("{} checklist completed", cfg.source);
     }
 }

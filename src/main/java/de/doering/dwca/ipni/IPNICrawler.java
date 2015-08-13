@@ -56,11 +56,7 @@ public class IPNICrawler implements Runnable {
         this(client, ipniDir, Sets.<String>newHashSet());
     }
 
-    public IPNICrawler(CloseableHttpClient client, File ipniDir, String ... families) {
-        this(client, ipniDir, Sets.<String>newHashSet(families));
-    }
-
-    private IPNICrawler(CloseableHttpClient client, File ipniDir, Set<String> families) {
+    public IPNICrawler(CloseableHttpClient client, File ipniDir, Set<String> families) {
         this.client = client;
         this.ipniDir = ipniDir;
         if (ipniDir.exists()) {
@@ -201,9 +197,4 @@ public class IPNICrawler implements Runnable {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        //IPNICrawler ipni = new IPNICrawler(HttpUtil.newMultithreadedClient(60*1000, 10, 10), new File("/Users/markus/Desktop/ipni"), "Linaceae", "Siphonodontaceae", "Stylidiceae");
-        IPNICrawler ipni = new IPNICrawler(HttpUtil.newMultithreadedClient(60*1000, 10, 10), new File("/home/crap/ipni"));
-        ipni.run();
-    }
 }

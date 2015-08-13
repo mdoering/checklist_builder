@@ -23,21 +23,18 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractBuilder implements Runnable {
     protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
-    protected final DwcaWriter writer;
     protected final Dataset dataset = new Dataset();
     protected final CliConfiguration cfg;
     protected final CloseableHttpClient client;
     protected final HttpUtil http;
+    protected DwcaWriter writer;
+    private final DatasetType type;
 
     public AbstractBuilder(DatasetType type, CliConfiguration cfg) {
         this.cfg = cfg;
         client = HttpUtil.newMultithreadedClient(10000, 50, 50);
         http = new HttpUtil(client);
-        try {
-            writer = new DwcaWriter(type == DatasetType.CHECKLIST ? DwcTerm.Taxon : DwcTerm.Occurrence, cfg.archiveDir(), false);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.type = type;
     }
 
     @Override
@@ -45,6 +42,12 @@ public abstract class AbstractBuilder implements Runnable {
         try {
             // metadata defaults
             dataset.setLanguage(Language.ENGLISH);
+
+            try {
+                writer = new DwcaWriter(type == DatasetType.CHECKLIST ? DwcTerm.Taxon : DwcTerm.Occurrence, cfg.archiveDir(), false);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             parseData();
             addMetadata();
