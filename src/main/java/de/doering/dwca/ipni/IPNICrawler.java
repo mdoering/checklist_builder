@@ -45,7 +45,7 @@ public class IPNICrawler implements Runnable {
             "&find_family={family}" +
             "&find_genus={genus}";
     private static final Set<String> LARGE_FAMILIES = Sets.newHashSet("Asteraceae", "Fabaceae", "Orchidaceae");
-    private static final Pattern REPLACE_LEADING_FAMILY = Pattern.compile("");
+    private static final Pattern REPLACE_LEADING_FAMILY = Pattern.compile("^[A-Z][a-z]+ ");
     private static final Joiner JOINER = Joiner.on(DELIMITER).useForNull("");
 
     enum RANK_PARAM {ALL, FAM, INFRAFAM, GEN, INFRAGEN, SPEC, INFRASPEC};
