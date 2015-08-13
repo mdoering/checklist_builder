@@ -32,7 +32,7 @@ public abstract class AbstractBuilder implements Runnable {
 
     public AbstractBuilder(DatasetType type, CliConfiguration cfg) {
         this.cfg = cfg;
-        client = HttpUtil.newMultithreadedClient(10000, 50, 50);
+        client = HttpUtil.newMultithreadedClient(cfg.timeout*1000, 50, 50);
         http = new HttpUtil(client);
         this.type = type;
     }

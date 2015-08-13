@@ -21,6 +21,9 @@ public class CliConfiguration {
     @NotNull
     public String source;
 
+    @Parameter(names = {"--timeout"})
+    public int timeout = 60;
+
     /**
      * Returns the directory with the decompressed archive folder created by the checklist builder
      */
