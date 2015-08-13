@@ -80,6 +80,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     public void run() {
         try {
             dwcaDir = cfg.archiveDir();
+            org.apache.commons.io.FileUtils.forceMkdir(dwcaDir);
 
             parseData();
             addMetadata();
@@ -118,6 +119,7 @@ public class ArchiveBuilder extends AbstractBuilder {
             EMLWriter.write(dataset, writer);
         }
         // write constituent metadata
+        org.apache.commons.io.FileUtils.forceMkdir(new File(dwcaDir, "dataset"));
         for (IPNICrawler.SOURCE src : IPNICrawler.SOURCE.values()) {
             String fname = src.name()+".xml";
             FileUtils.copyStreamToFile(FileUtils.classpathStream("ipni/"+fname), new File(dwcaDir, "dataset/"+fname));

@@ -164,7 +164,6 @@ public class IPNICrawler implements Runnable {
                 // create output files per source
                 File srcFile = new File(ipniDir, sp.name().toLowerCase() + ".txt");
                 files.put(sp, srcFile);
-                FileUtils.forceMkdir(srcFile.getParentFile());
                 try (FileOutputStream out = new FileOutputStream(srcFile, false)) {
                     for (String family : families) {
                         crawlFamily(sp, family, out);
