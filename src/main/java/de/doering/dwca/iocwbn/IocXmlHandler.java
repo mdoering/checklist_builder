@@ -1,16 +1,18 @@
 package de.doering.dwca.iocwbn;
 
-import org.gbif.dwc.terms.ConceptTerm;
+import org.gbif.api.model.registry.Citation;
+import org.gbif.api.model.registry.Dataset;
+import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.text.DwcaWriter;
-import org.gbif.metadata.eml.Citation;
-import org.gbif.metadata.eml.Eml;
-import org.gbif.metadata.handler.SimpleSaxHandler;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwca.io.DwcaWriter;
+import org.gbif.dwca.io.SimpleSaxHandler;
 
 import java.io.IOException;
-import java.text.ParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -29,7 +31,7 @@ public class IocXmlHandler extends SimpleSaxHandler {
   private Splitter commaSplit = Splitter.on(',').omitEmptyStrings().trimResults();
 
   private final DwcaWriter writer;
-  private final Eml eml;
+  private final Dataset eml;
 
   private boolean meta=false;
   private int id = 1000;
@@ -58,7 +60,7 @@ public class IocXmlHandler extends SimpleSaxHandler {
     areaLookup.put("SO. CONE", "Southern Cone");
   }
 
-  public IocXmlHandler(DwcaWriter writer, Eml eml) throws IOException {
+  public IocXmlHandler(DwcaWriter writer, Dataset eml) throws IOException {
     this.writer = writer;
     this.eml = eml;
 
@@ -113,7 +115,7 @@ public class IocXmlHandler extends SimpleSaxHandler {
       writer.addCoreColumn(DwcTerm.parentNameUsageID, parents.getLast().id.toString());
     }
 
-    Map<ConceptTerm, String> data = new HashMap<ConceptTerm, String>();
+    Map<Term, String> data = new HashMap<Term, String>();
     data.put(DwcTerm.vernacularName, current.englishName);
     data.put(DcTerm.language, "en");
     writer.addExtensionRecord(GbifTerm.VernacularName, data);
@@ -124,7 +126,7 @@ public class IocXmlHandler extends SimpleSaxHandler {
         if (areaLookup.containsKey(area.toUpperCase())){
           area = areaLookup.get(area.toUpperCase());
         }
-        data = new HashMap<ConceptTerm, String>();
+        data = new HashMap<Term, String>();
         data.put(DwcTerm.locality, area);
         data.put(DwcTerm.occurrenceStatus, "present");
         data.put(DwcTerm.occurrenceRemarks, "Breeding region");
@@ -152,7 +154,7 @@ public class IocXmlHandler extends SimpleSaxHandler {
     }
     String d = distribution.toString().trim();
     if (!d.isEmpty()){
-      data = new HashMap<ConceptTerm, String>();
+      data = new HashMap<Term, String>();
       data.put(DcTerm.description, d);
       data.put(DcTerm.type, "Distribution");
       writer.addExtensionRecord(GbifTerm.Description, data);
@@ -171,14 +173,15 @@ public class IocXmlHandler extends SimpleSaxHandler {
       if ("title".equalsIgnoreCase(qName)) {
         eml.setTitle(content);
       }else if ("cite".equalsIgnoreCase(qName)) {
-        Citation cite = new Citation();
-        cite.setCitation(content);
-        eml.setCitation(cite);
+          Citation cite = new Citation();
+          cite.setText(content);
+          eml.setCitation(cite);
       }else if ("generated".equalsIgnoreCase(qName)) {
-        try {
-          eml.setDateStamp(content);
-        } catch (ParseException e) {
-          log.warn("Cannot parse generated date");
+        ParseResult<Date> result = DateParseUtils.parse(content);
+        if (result.isSuccessful()) {
+            eml.setPubDate(result.getPayload());
+        } else {
+            log.warn("Cannot parse generated date");
         }
       }else if ("version".equalsIgnoreCase(qName)) {
       }else if ("species_count".equalsIgnoreCase(qName)) {

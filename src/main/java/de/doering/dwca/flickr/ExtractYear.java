@@ -1,6 +1,6 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.ConceptTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.io.IOException;
@@ -42,10 +42,10 @@ public class ExtractYear implements Runnable {
   private int currPage;
   private final ImageWriter imgWriter;
 
-  private static final Map<String, ConceptTerm> TAG_MAPPING = Maps.newHashMap();
+  private static final Map<String, Term> TAG_MAPPING = Maps.newHashMap();
   private Flickr f;
 
-  private static void addTagMappings(ConceptTerm term , String ... tags){
+  private static void addTagMappings(Term term , String ... tags){
     for (String t : tags){
       TAG_MAPPING.put(t, term);
     }
@@ -55,7 +55,7 @@ public class ExtractYear implements Runnable {
     addTagMappings(DwcTerm.scientificNameAuthorship, "darwincore:scientificNameAuthorship","dwc:scientificNameAuthorship","taxonomy:author","taxonomy:authority","taxonomy:author");
     addTagMappings(DwcTerm.kingdom, "darwincore:kingdom","dwc:kingdom","taxonomy:kingdom","taxonomy:domain");
     addTagMappings(DwcTerm.phylum, "darwincore:phylum","dwc:phylum","taxonomy:phylum");
-    addTagMappings(DwcTerm.classs, "darwincore:class","dwc:class","taxonomy:class");
+    addTagMappings(DwcTerm.class_, "darwincore:class","dwc:class","taxonomy:class");
     addTagMappings(DwcTerm.order, "darwincore:order","dwc:order","taxonomy:order");
     addTagMappings(DwcTerm.family, "darwincore:family","dwc:family","taxonomy:family");
     addTagMappings(DwcTerm.genus, "darwincore:genus","dwc:genus","taxonomy:genus");

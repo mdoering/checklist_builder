@@ -1,11 +1,11 @@
 package de.doering.dwca.invasivespecies;
 
-import org.gbif.dwc.terms.ConceptTerm;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.text.DwcaWriter;
-import org.gbif.metadata.handler.SimpleSaxHandler;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwca.io.DwcaWriter;
+import org.gbif.dwca.io.SimpleSaxHandler;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -44,75 +44,75 @@ public class InvasivespeciesHandler extends SimpleSaxHandler {
   private String link;
   private List<String> vernaculars = Lists.newArrayList();
   private String synonym;
-  private Map<ConceptTerm, String> classification;
+  private Map<Term, String> classification;
   private Attributes attributes;
   private String baseUrl;
 
   private Set<String> missingCategories = Sets.newHashSet();
-  private static Map<String, Map<ConceptTerm,String>> classificationLookup = Maps.newHashMap();
+  private static Map<String, Map<Term,String>> classificationLookup = Maps.newHashMap();
   static {
-    classificationLookup.put("reptile", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.classs, "Reptilia"));
-    classificationLookup.put("mammal", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.classs, "Mammalia"));
-    classificationLookup.put("bird", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.classs, "Aves"));
-    classificationLookup.put("amphibian", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.classs, "Amphibia"));
-    classificationLookup.put("fish", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia"));
-    classificationLookup.put("jellyfish", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Cnidaria"));
-    classificationLookup.put("mollusc", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Mollusca"));
-    classificationLookup.put("insect", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.classs, "Insecta"));
-    classificationLookup.put("arachnid", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.classs, "Arachnida"));
-    classificationLookup.put("insect, arachnid", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.classs, "Arachnida"));
-    classificationLookup.put("crustacean", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda"));
-    classificationLookup.put("flatworm", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Platyhelminthes"));
-    classificationLookup.put("annelid", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Annelida"));
-    classificationLookup.put("bryozoan", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Bryozoa"));
+    classificationLookup.put("reptile", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.class_, "Reptilia"));
+    classificationLookup.put("mammal", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.class_, "Mammalia"));
+    classificationLookup.put("bird", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.class_, "Aves"));
+    classificationLookup.put("amphibian", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata", DwcTerm.class_, "Amphibia"));
+    classificationLookup.put("fish", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia"));
+    classificationLookup.put("jellyfish", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Cnidaria"));
+    classificationLookup.put("mollusc", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Mollusca"));
+    classificationLookup.put("insect", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.class_, "Insecta"));
+    classificationLookup.put("arachnid", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.class_, "Arachnida"));
+    classificationLookup.put("insect, arachnid", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.class_, "Arachnida"));
+    classificationLookup.put("crustacean", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda"));
+    classificationLookup.put("flatworm", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Platyhelminthes"));
+    classificationLookup.put("annelid", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Annelida"));
+    classificationLookup.put("bryozoan", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Bryozoa"));
 
-    classificationLookup.put("comb jelly", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Ctenophora"));
-    classificationLookup.put("sea star", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Echinodermata", DwcTerm.classs, "Asteroidea"));
-    classificationLookup.put("tunicate", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata"));
-    classificationLookup.put("nematode", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Nematoda"));
-    classificationLookup.put("coral", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Cnidaria", DwcTerm.classs, "Anthozoa"));
-    classificationLookup.put("sponge", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Porifera"));
-    classificationLookup.put("centipede/millipede", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda"));
-    classificationLookup.put("collembola, springtail", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.classs, "Entognatha"));
+    classificationLookup.put("comb jelly", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Ctenophora"));
+    classificationLookup.put("sea star", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Echinodermata", DwcTerm.class_, "Asteroidea"));
+    classificationLookup.put("tunicate", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Chordata"));
+    classificationLookup.put("nematode", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Nematoda"));
+    classificationLookup.put("coral", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Cnidaria", DwcTerm.class_, "Anthozoa"));
+    classificationLookup.put("sponge", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Porifera"));
+    classificationLookup.put("centipede/millipede", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda"));
+    classificationLookup.put("collembola, springtail", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Animalia", DwcTerm.phylum, "Arthropoda", DwcTerm.class_, "Entognatha"));
 
-    classificationLookup.put("grass", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.order, "Poales"));
-    classificationLookup.put("grass, tree", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.order, "Poales"));
-    classificationLookup.put("aquatic plant, grass", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.order, "Poales"));
-    classificationLookup.put("sedge", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Cyperaceae"));
-    classificationLookup.put("aquatic plant, sedge", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Cyperaceae"));
-    classificationLookup.put("rush", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Juncaceae"));
-    classificationLookup.put("fern", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
-    classificationLookup.put("herb, fern",ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
-    classificationLookup.put("vine, climber, fern",ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
-    classificationLookup.put("aquatic plant, fern",ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
+    classificationLookup.put("grass", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.order, "Poales"));
+    classificationLookup.put("grass, tree", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.order, "Poales"));
+    classificationLookup.put("aquatic plant, grass", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.order, "Poales"));
+    classificationLookup.put("sedge", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Cyperaceae"));
+    classificationLookup.put("aquatic plant, sedge", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Cyperaceae"));
+    classificationLookup.put("rush", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Juncaceae"));
+    classificationLookup.put("fern", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
+    classificationLookup.put("herb, fern",ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
+    classificationLookup.put("vine, climber, fern",ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
+    classificationLookup.put("aquatic plant, fern",ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Pteridophyta"));
 
-    classificationLookup.put("palm", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Arecaceae"));
-    classificationLookup.put("tree, palm", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Arecaceae"));
+    classificationLookup.put("palm", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Arecaceae"));
+    classificationLookup.put("tree, palm", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.family, "Arecaceae"));
 
-    classificationLookup.put("aquatic plant", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("aquatic plant, herb", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("aquatic plant, succulent", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("vine, climber", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("herb", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("herb, vine, climber", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("tree", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("tree, shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("tree, shrub, succulent", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("vine, climber, shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("herb, succulent", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("aquatic plant, tree, shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("vine, climber, tree, shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("herb, shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
-    classificationLookup.put("herb, shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("aquatic plant", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("aquatic plant, herb", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("aquatic plant, succulent", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("vine, climber", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("herb", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("herb, vine, climber", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("tree", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("tree, shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("tree, shrub, succulent", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("vine, climber, shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("herb, succulent", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("aquatic plant, tree, shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("vine, climber, tree, shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("herb, shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("herb, shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
 
-    classificationLookup.put("succulent", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Magnoliophyta"));
-    classificationLookup.put("shrub", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Plantae"));
+    classificationLookup.put("succulent", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae", DwcTerm.phylum, "Magnoliophyta"));
+    classificationLookup.put("shrub", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Plantae"));
 
-    classificationLookup.put("fungus", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Fungi"));
-    classificationLookup.put("alga", ImmutableMap.<ConceptTerm, String>of());
-    classificationLookup.put("aquatic plant, alga", ImmutableMap.<ConceptTerm, String>of());
-    classificationLookup.put("oomycete", ImmutableMap.<ConceptTerm, String>of(DwcTerm.kingdom, "Chromista", DwcTerm.phylum, "Oomycota"));
-    classificationLookup.put("micro-organism", ImmutableMap.<ConceptTerm, String>of());
+    classificationLookup.put("fungus", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Fungi"));
+    classificationLookup.put("alga", ImmutableMap.<Term, String>of());
+    classificationLookup.put("aquatic plant, alga", ImmutableMap.<Term, String>of());
+    classificationLookup.put("oomycete", ImmutableMap.<Term, String>of(DwcTerm.kingdom, "Chromista", DwcTerm.phylum, "Oomycota"));
+    classificationLookup.put("micro-organism", ImmutableMap.<Term, String>of());
   }
 
   public InvasivespeciesHandler(DwcaWriter writer, String baseUrl) {
@@ -170,14 +170,14 @@ public class InvasivespeciesHandler extends SimpleSaxHandler {
     writer.addCoreColumn(DcTerm.source, link);
 
     for (String v : vernaculars) {
-      Map<ConceptTerm, String> data = new HashMap<ConceptTerm, String>();
+      Map<Term, String> data = new HashMap<Term, String>();
       data.put(DwcTerm.vernacularName, v);
       writer.addExtensionRecord(GbifTerm.VernacularName, data);
     }
 
     boolean classified=false;
     if (classification != null) {
-      for (ConceptTerm t : classification.keySet()){
+      for (Term t : classification.keySet()){
         if (!Strings.isNullOrEmpty(classification.get(t))){
           classified=true;
           writer.addCoreColumn(t, classification.get(t));

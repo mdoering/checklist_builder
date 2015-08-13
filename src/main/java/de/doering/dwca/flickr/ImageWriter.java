@@ -1,13 +1,14 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.ConceptTerm;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.dwc.text.DwcaWriter;
+import org.gbif.dwca.io.DwcaWriter;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +22,8 @@ import org.slf4j.LoggerFactory;
 public class ImageWriter {
   private Logger log = LoggerFactory.getLogger(getClass());
   private final DwcaWriter writer;
-  private final ConceptTerm thumbnail = new UnknownTerm("http://flickr.com/terms/smallSquareUrl","smallSquareUrl");
-  private final ConceptTerm flickrid = new UnknownTerm("http://flickr.com/terms/photoId","photoId");
+  private final Term thumbnail = new UnknownTerm(URI.create("http://flickr.com/terms/smallSquareUrl"),"smallSquareUrl");
+  private final Term flickrid = new UnknownTerm(URI.create("http://flickr.com/terms/photoId"),"photoId");
   private final Cache<String, Integer> cache = CacheBuilder.newBuilder().maximumSize(10000).build();
 
   public ImageWriter(DwcaWriter writer) {
@@ -67,12 +68,12 @@ public class ImageWriter {
         writer.addCoreColumn(DwcTerm.coordinatePrecision, img.getAccuracy().toString());
       }
       // additional, optional dynamic properties
-      for (ConceptTerm t : img.getAttributes().keySet()){
+      for (Term t : img.getAttributes().keySet()){
         writer.addCoreColumn(t, img.getAttribute(t));
       }
 
       // add image extension
-      Map<ConceptTerm, String> data = new HashMap<ConceptTerm, String>();
+      Map<Term, String> data = new HashMap<Term, String>();
       data.put(flickrid,img.getId());
       data.put(DcTerm.references, img.getLink());
       data.put(DcTerm.identifier, img.getImage());

@@ -1,6 +1,6 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.ConceptTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.DwcTerm;
 
 import java.util.Date;
@@ -11,15 +11,15 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class FlickrImage {
-  public static final Map<String, ConceptTerm> TAG_MAPPING = Maps.newHashMap();
+  public static final Map<String, Term> TAG_MAPPING = Maps.newHashMap();
 
-  private static void addTagMappings(ConceptTerm term , String ... tags){
+  private static void addTagMappings(Term term , String ... tags){
     for (String t : tags){
       TAG_MAPPING.put(t, term);
     }
   }
 
-  public static Set<String> getTagMappings(ConceptTerm term){
+  public static Set<String> getTagMappings(Term term){
     Set<String> tags = Sets.newHashSet();
     for (String t : TAG_MAPPING.keySet()){
       if (term.equals(TAG_MAPPING.get(t))){
@@ -34,7 +34,7 @@ public class FlickrImage {
     addTagMappings(DwcTerm.scientificNameAuthorship, "darwincore:scientificNameAuthorship","dwc:scientificNameAuthorship","taxonomy:author","taxonomy:authority","taxonomy:author");
     addTagMappings(DwcTerm.kingdom, "darwincore:kingdom","dwc:kingdom","taxonomy:kingdom","taxonomy:domain");
     addTagMappings(DwcTerm.phylum, "darwincore:phylum","dwc:phylum","taxonomy:phylum");
-    addTagMappings(DwcTerm.classs, "darwincore:class","dwc:class","taxonomy:class");
+    addTagMappings(DwcTerm.class_, "darwincore:class","dwc:class","taxonomy:class");
     addTagMappings(DwcTerm.order, "darwincore:order","dwc:order","taxonomy:order");
     addTagMappings(DwcTerm.family, "darwincore:family","dwc:family","taxonomy:family");
     addTagMappings(DwcTerm.genus, "darwincore:genus","dwc:genus","taxonomy:genus");
@@ -61,7 +61,7 @@ public class FlickrImage {
   private String photographer;
   private String owner;
   private String license;
-  private Map<ConceptTerm,String> attributes = Maps.newHashMap();
+  private Map<Term,String> attributes = Maps.newHashMap();
 
   public String getTitle() {
     return title;
@@ -103,15 +103,15 @@ public class FlickrImage {
     this.photographer = photographer;
   }
 
-  public Map<ConceptTerm, String> getAttributes() {
+  public Map<Term, String> getAttributes() {
     return attributes;
   }
 
-  public String getAttribute(ConceptTerm term) {
+  public String getAttribute(Term term) {
     return attributes.get(term);
   }
 
-  public void setAttribute(ConceptTerm term, String value) {
+  public void setAttribute(Term term, String value) {
     if (term instanceof DwcTerm){
       DwcTerm dwc = (DwcTerm) term;
       try {
