@@ -44,6 +44,7 @@ public class IPNICrawler implements Runnable {
             "&find_rankToReturn={rank}" +
             "&find_family={family}" +
             "&find_genus={genus}";
+    // large families in IndexKewensis only. These exceed the 50.000 records results limit and need to be paged in pieces by genus names
     private static final Set<String> LARGE_FAMILIES = Sets.newHashSet("Asteraceae", "Fabaceae", "Orchidaceae");
     private static final Pattern REPLACE_LEADING_FAMILY = Pattern.compile("^[A-Z][a-z]+ ");
     private static final Joiner JOINER = Joiner.on(DELIMITER).useForNull("");
@@ -129,8 +130,8 @@ public class IPNICrawler implements Runnable {
     }
 
     private void crawlFamily(SOURCE src, String family, FileOutputStream out) throws IOException {
-        if (LARGE_FAMILIES.contains(family)) {
-            LOG.info("Crawl large family {} by individual genera", src, family);
+        if (SOURCE.IK == src && LARGE_FAMILIES.contains(family)) {
+            LOG.info("Crawl large IndexKewensis family {} by individual genera", src, family);
             for (Character c : atoz) {
                 crawlFamilyByGenus(src, family, c+WILDCARD, out);
             }
