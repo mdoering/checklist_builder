@@ -44,13 +44,12 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
-    private static final String VERSION = "July 2013";
     private static final String DOWNLOAD = "http://www.dsmz.de/fileadmin/Bereiche/ChiefEditors/BacterialNomenclature/DSMZ_bactnames.zip";
     // metadata
     private static final String TITLE = "Prokaryotic Nomenclature Up-to-date";
     private static final String HOMEPAGE = "http://www.dsmz.de/bacterial-diversity/prokaryotic-nomenclature-up-to-date.html";
     private static final String LOGO = "http://www.dsmz.de/fileadmin/templates/gfx/logo.gif";
-    private static final String DESCRIPTION = "\"Prokaryotic Nomenclature up-to-date\" is a compilation of all names of Bacteria and Archaea which have been validly published according to the Bacteriological Code since 1. Jan. 1980, and nomenclatural changes which have been validly published since. It will be updated with the publication of each new issue of the Int. J. Syst. Evol. Microbiol. (IJSEM). \"Prokaryotic Nomenclature up-to-date\" is published by the Leibniz-Institut DSMZ - Deutsche Sammlung von Mikroorganismen und Zellkulturen GmbH. This checklist is based on the complete list from " + VERSION;
+    private static final String DESCRIPTION = "\"Prokaryotic Nomenclature up-to-date\" is a compilation of all names of Bacteria and Archaea which have been validly published according to the Bacteriological Code since 1. Jan. 1980, and nomenclatural changes which have been validly published since. It will be updated with the publication of each new issue of the Int. J. Syst. Evol. Microbiol. (IJSEM). \"Prokaryotic Nomenclature up-to-date\" is published by the Leibniz-Institut DSMZ - Deutsche Sammlung von Mikroorganismen und Zellkulturen GmbH.";
     private static final String DSMZ_ORG = "Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures";
     private static final String CONTACT_FIRST_NAME = "Dorothea";
     private static final String CONTACT_LAST_NAME = "Gleim";
