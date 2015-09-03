@@ -22,7 +22,6 @@ import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -35,11 +34,13 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import de.doering.dwca.utils.ParagraphBuilder;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -76,13 +77,19 @@ public class ArchiveBuilder extends AbstractBuilder {
         super(DatasetType.CHECKLIST, cfg);
     }
 
-    protected void parseData() throws IOException {
+    protected void parseData() throws IOException, InvalidFormatException {
+        parseData(new File("/Users/markus/Downloads/DSMZ_bactnames0615.xlsx"));
+        if (true) {
+            return;
+        }
+
         // get excel sheet
         LOG.info("Downloading latest data from {}", DOWNLOAD);
 
         // download zipped xls
         final File tmp = FileUtils.createTempDir();
-        final File zip = new File(tmp, "dsmz.zip");
+        tmp.deleteOnExit();
+        final File zip = File.createTempFile("dsmz", ".zip");
         zip.deleteOnExit();
         http.download(DOWNLOAD, zip);
         // decompress
@@ -110,9 +117,9 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
 
     // parse XLS
-    private void parseData(File xls) throws IOException {
+    private void parseData(File xls) throws IOException, InvalidFormatException {
 
-        Workbook wb = new HSSFWorkbook(new FileInputStream(xls));
+        Workbook wb = WorkbookFactory.create(xls);
         Sheet sheet = wb.getSheetAt(0);
         int rows = sheet.getPhysicalNumberOfRows();
         LOG.info("{} rows found in excel sheet", rows);
@@ -152,7 +159,7 @@ AL= by citation in the Approved Lists of Bacterial Names
 VL= by the announcement in an IJSB/IJSEM validation list
 VP= by an original publication in the IJSB/IJSEM
        */
-            StringBuilder remark = new StringBuilder();
+            ParagraphBuilder remark = new ParagraphBuilder();
             remark.append(col(row, COL_REMARKS));
 
             String status = col(row, COL_STATUS);
@@ -190,6 +197,9 @@ VP= by an original publication in the IJSB/IJSEM
 
     private String col(Row row, int column) {
         Cell c = row.getCell(column);
+        if (c == null) {
+            return null;
+        }
         switch (c.getCellType()) {
             case Cell.CELL_TYPE_NUMERIC:
                 return String.valueOf((int) c.getNumericCellValue());
