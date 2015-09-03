@@ -78,11 +78,6 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
 
     protected void parseData() throws IOException, InvalidFormatException {
-        parseData(new File("/Users/markus/Downloads/DSMZ_bactnames0615.xlsx"));
-        if (true) {
-            return;
-        }
-
         // get excel sheet
         LOG.info("Downloading latest data from {}", DOWNLOAD);
 
