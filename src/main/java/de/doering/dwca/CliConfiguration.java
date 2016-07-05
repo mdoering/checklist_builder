@@ -22,7 +22,7 @@ public class CliConfiguration {
     public String source;
 
     @Parameter(names = {"--timeout"})
-    public int timeout = 60;
+    public int timeout = 600;
 
     /**
      * Returns the directory with the decompressed archive folder created by the checklist builder

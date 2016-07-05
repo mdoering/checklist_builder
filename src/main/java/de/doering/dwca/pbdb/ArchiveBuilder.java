@@ -56,7 +56,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final String ORGANISATION = "The Paleobiology Database";
   private static final String CONTACT_EMAIL = "info@paleobiodb.org";
   private static final String DESCRIPTION1 = "The Paleobiology Database is a public database of paleontological data that anyone can use, maintained by an international non-governmental group of paleontologists.";
-  private static final String DESCRIPTION2 = "The Paleobiology Database is a public database of paleontological data that anyone can use, maintained by an international non-governmental group of paleontologists.";
+  private static final String DESCRIPTION2 = "Fossil occurrences from scientific publications are added to the database by our contributing members. Thanks to our membership, which includes nearly 400 scientists from over 130 institutions in 24 countries, the Paleobiology Database is able to provide scientists and the public with information about the fossil record.";
 
   private static final int COL_ID = 0;
   private static final int COL_RANK = 4;
