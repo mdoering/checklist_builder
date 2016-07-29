@@ -9,13 +9,14 @@ import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwca.io.DwcaWriter;
-import org.gbif.utils.HttpUtil;
 import org.gbif.utils.file.CompressionUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Date;
 
+import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
@@ -26,14 +27,14 @@ public abstract class AbstractBuilder implements Runnable {
   protected final Dataset dataset = new Dataset();
   protected final CliConfiguration cfg;
   protected final CloseableHttpClient client;
-  protected final HttpUtil http;
+  protected final HttpUtils http;
   protected DwcaWriter writer;
   private final DatasetType type;
 
   public AbstractBuilder(DatasetType type, CliConfiguration cfg) {
     this.cfg = cfg;
-    client = HttpUtil.newMultithreadedClient(cfg.timeout * 1000, 50, 50);
-    http = new HttpUtil(client);
+    client = HttpUtils.newMultithreadedClient(cfg.timeout * 1000, 50, 50);
+    http = new HttpUtils(client);
     this.type = type;
   }
 
@@ -81,6 +82,10 @@ public abstract class AbstractBuilder implements Runnable {
     addContact(org, null, null, email, ContactType.POINT_OF_CONTACT);
   }
 
+  protected void addContactPerson(String first, String last, ContactType role) {
+    addContact(null, first, last, null, role);
+  }
+
   protected void addContact(String org, String email, ContactType role) {
     addContact(org, null, null, email, role);
   }
@@ -110,6 +115,11 @@ public abstract class AbstractBuilder implements Runnable {
     dd.setName(name);
     dd.setUrl(uri(url));
     dataset.getDataDescriptions().add(dd);
+  }
+
+  protected void setPubDate(String isoDate) {
+    Date d = new Date();
+    dataset.setPubDate(d);
   }
 
   /**

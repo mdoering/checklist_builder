@@ -16,6 +16,7 @@
 package de.doering.dwca.pbdb;
 
 import org.gbif.api.vocabulary.DatasetType;
+import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -52,11 +53,12 @@ public class ArchiveBuilder extends AbstractBuilder {
   // metadata
   private static final String TITLE = "The Paleobiology Database";
   private static final URI HOMEPAGE = URI.create("https://paleobiodb.org/");
-  private static final URI LOGO = URI.create("https://paleobiodb.org/build/img/logo_white.png");
+  private static final URI LOGO = URI.create("https://paleobiodb.org/build/logos/pbdb_color.png");
   private static final String ORGANISATION = "The Paleobiology Database";
   private static final String CONTACT_EMAIL = "info@paleobiodb.org";
   private static final String DESCRIPTION1 = "The Paleobiology Database is a public database of paleontological data that anyone can use, maintained by an international non-governmental group of paleontologists.";
   private static final String DESCRIPTION2 = "Fossil occurrences from scientific publications are added to the database by our contributing members. Thanks to our membership, which includes nearly 400 scientists from over 130 institutions in 24 countries, the Paleobiology Database is able to provide scientists and the public with information about the fossil record.";
+  private static final String LICENSE = "This work is licensed under a Creative Commons Attribution (CC-BY) 4.0 License.";
 
   private static final int COL_ID = 0;
   private static final int COL_RANK = 4;
@@ -82,9 +84,6 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   @Override
   protected void parseData() throws Exception {
-    // update pubdate metadata
-    dataset.setPubDate(new Date());
-
     // get latest CSV
     LOG.info("Downloading latest data from {}", DOWNLOAD);
     HttpGet get = new HttpGet(DOWNLOAD);
@@ -183,8 +182,11 @@ public class ArchiveBuilder extends AbstractBuilder {
   @Override
   protected void addMetadata() {
     // metadata
+    dataset.setPubDate(new Date());
     dataset.setTitle(TITLE);
     dataset.setDescription(DESCRIPTION1 + "\n\n" + DESCRIPTION2);
+    dataset.setRights(LICENSE);
+    dataset.setLanguage(Language.ENGLISH);
     dataset.setHomepage(HOMEPAGE);
     dataset.setLogoUrl(LOGO);
     addContact(ORGANISATION, CONTACT_EMAIL);

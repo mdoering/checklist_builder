@@ -1,9 +1,6 @@
 package de.doering.dwca.iocwbn;
 
-import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
-import org.gbif.common.parsers.core.ParseResult;
-import org.gbif.common.parsers.date.DateParseUtils;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -12,14 +9,17 @@ import org.gbif.dwca.io.DwcaWriter;
 import org.gbif.dwca.io.SimpleSaxHandler;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -32,14 +32,18 @@ public class IocXmlHandler extends SimpleSaxHandler {
 
   private final DwcaWriter writer;
   private final Dataset eml;
+  private String version;
+  private String year;
 
-  private boolean meta=false;
   private int id = 1000;
+
+  private Set<String> rankTags = ImmutableSet.of("order", "family", "genus", "species", "subspecies");
 
   private LinkedList<Taxon> parents = Lists.newLinkedList();
   private Taxon current;
 
   private static Map<String, String> areaLookup = Maps.newHashMap();
+
   static {
     areaLookup.put("NA", "North America");
     areaLookup.put("MA", "Middle America");
@@ -66,64 +70,74 @@ public class IocXmlHandler extends SimpleSaxHandler {
 
     // Root classification
     current = new Taxon();
-    current.id=1;
-    current.name="Animalia";
-    current.rank="kingdom";
+    current.id = 1;
+    current.name = "Animalia";
+    current.rank = "kingdom";
     writeCurrent();
 
     parents.add(current);
     current = new Taxon();
-    current.id=10;
-    current.name="Aves";
-    current.rank="class";
+    current.id = 10;
+    current.name = "Aves";
+    current.rank = "class";
     writeCurrent();
+  }
 
-    parents.add(current);
+  public String getVersion() {
+    return version;
+  }
+
+  public String getYear() {
+    return year;
   }
 
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
     super.startElement(uri, localName, qName, attributes);
 
-    if ("meta".equalsIgnoreCase(qName)) {
-      meta = true;
+    if ("ioclist".equalsIgnoreCase(qName)) {
+      year = attributes.getValue("year");
+      version = attributes.getValue("version");
     }
 
-    if ("order".equalsIgnoreCase(qName) || "family".equalsIgnoreCase(qName) || "genus".equalsIgnoreCase(qName) || "species".equalsIgnoreCase(qName)){
+    if (rankTags.contains(qName)) {
       // append current to parents list
-      if (current!=null){
+      if (current != null) {
         parents.add(current);
       }
       // start new current
       current = new Taxon();
       current.id = id++;
-      current.rank=qName;
+      current.rank = qName;
+      current.extinct = Strings.nullToEmpty(attributes.getValue("extinct")).equalsIgnoreCase("yes");
     }
-
   }
 
   private void writeCurrent() throws IOException {
-    if (current == null) {
+    if (current == null || writer == null) {
       return;
     }
 
     writer.newRecord(current.id.toString());
     writer.addCoreColumn(DwcTerm.scientificName, current.name);
+    writer.addCoreColumn(DwcTerm.scientificNameAuthorship, current.authority);
     writer.addCoreColumn(DwcTerm.taxonRank, current.rank);
     writer.addCoreColumn(DwcTerm.taxonRemarks, current.note);
-    if (!parents.isEmpty()){
+    if (!parents.isEmpty()) {
       writer.addCoreColumn(DwcTerm.parentNameUsageID, parents.getLast().id.toString());
     }
 
     Map<Term, String> data = new HashMap<Term, String>();
-    data.put(DwcTerm.vernacularName, current.englishName);
-    data.put(DcTerm.language, "en");
-    writer.addExtensionRecord(GbifTerm.VernacularName, data);
+    if (!Strings.isNullOrEmpty(current.englishName)) {
+      data.put(DwcTerm.vernacularName, current.englishName);
+      data.put(DcTerm.language, "en");
+      writer.addExtensionRecord(GbifTerm.VernacularName, data);
+    }
 
     // distribution only for higher region;
-    if (current.breedingRegions != null){
-      for (String area : commaSplit.split(current.breedingRegions)){
-        if (areaLookup.containsKey(area.toUpperCase())){
+    if (current.breedingRegions != null) {
+      for (String area : commaSplit.split(current.breedingRegions)) {
+        if (areaLookup.containsKey(area.toUpperCase())) {
           area = areaLookup.get(area.toUpperCase());
         }
         data = new HashMap<Term, String>();
@@ -137,23 +151,23 @@ public class IocXmlHandler extends SimpleSaxHandler {
 
     // distribution description
     StringBuffer distribution = new StringBuffer();
-    if (current.breedingRegions != null){
+    if (current.breedingRegions != null) {
       distribution.append("Breeding regions are ");
       distribution.append(current.breedingRegions);
       distribution.append(". ");
     }
-    if (current.breedingSubregions != null){
+    if (current.breedingSubregions != null) {
       distribution.append("Breeding subregions are ");
       distribution.append(current.breedingSubregions);
       distribution.append(". ");
     }
-    if (current.nonbreedingRegions != null){
+    if (current.nonbreedingRegions != null) {
       distribution.append("Non breeding regions are ");
       distribution.append(current.nonbreedingRegions);
       distribution.append(". ");
     }
     String d = distribution.toString().trim();
-    if (!d.isEmpty()){
+    if (!d.isEmpty()) {
       data = new HashMap<Term, String>();
       data.put(DcTerm.description, d);
       data.put(DcTerm.type, "Distribution");
@@ -165,65 +179,53 @@ public class IocXmlHandler extends SimpleSaxHandler {
   public void endElement(String uri, String localName, String qName) throws SAXException {
     super.endElement(uri, localName, qName);
 
-    if ("meta".equalsIgnoreCase(qName)) {
-      meta = false;
-    }
-
-    if (meta){
-      if ("title".equalsIgnoreCase(qName)) {
-        eml.setTitle(content);
-      }else if ("cite".equalsIgnoreCase(qName)) {
-          Citation cite = new Citation();
-          cite.setText(content);
-          eml.setCitation(cite);
-      }else if ("generated".equalsIgnoreCase(qName)) {
-        ParseResult<Date> result = DateParseUtils.parse(content);
-        if (result.isSuccessful()) {
-            eml.setPubDate(result.getPayload());
-        } else {
-            log.warn("Cannot parse generated date");
-        }
-      }else if ("version".equalsIgnoreCase(qName)) {
-      }else if ("species_count".equalsIgnoreCase(qName)) {
+    if (rankTags.contains(qName)) {
+      // closing current, write taxon to file
+      try {
+        writeCurrent();
+      } catch (IOException e) {
+        throw new SAXException(e);
+      }
+      // retrieve last from stack
+      if (parents.isEmpty()) {
+        current = null;
+      } else {
+        current = parents.removeLast();
       }
 
     } else {
 
-      if ("order".equalsIgnoreCase(qName) || "family".equalsIgnoreCase(qName) || "genus".equalsIgnoreCase(qName) || "species".equalsIgnoreCase(qName)){
-        // closing current, write taxon to file
-        try {
-          writeCurrent();
-        } catch (IOException e) {
-          throw new SAXException(e);
-        }
-        // retrieve last from stack
-        if (parents.isEmpty()){
-          current = null;
-        } else {
-          current = parents.removeLast();
-        }
-
-      } else if ("latin_name".equalsIgnoreCase(qName)){
-        if ("species".equalsIgnoreCase(current.rank)){
+      if ("latin_name".equalsIgnoreCase(qName)) {
+        if (ImmutableSet.of("species", "subspecies").contains(current.rank)) {
           current.name = parents.getLast().name + " " + content;
+        } else if (current.rank.equalsIgnoreCase("order")) {
+          current.name = StringUtils.capitalize(content.toLowerCase());
         } else {
           current.name = content;
         }
-      }else if ("english_name".equalsIgnoreCase(qName)){
+
+      } else if ("authority".equalsIgnoreCase(qName)) {
+        current.authority = content;
+
+      } else if ("english_name".equalsIgnoreCase(qName)) {
         current.englishName = content;
-      }else if ("breeding_regions".equalsIgnoreCase(qName)){
+
+      } else if ("breeding_regions".equalsIgnoreCase(qName)) {
         current.breedingRegions = content;
-      }else if ("breeding_subregions".equalsIgnoreCase(qName)){
+
+      } else if ("breeding_subregions".equalsIgnoreCase(qName)) {
         current.breedingSubregions = content;
-      }else if ("nonbreeding_regions".equalsIgnoreCase(qName)){
+
+      } else if ("nonbreeding_regions".equalsIgnoreCase(qName)) {
         current.nonbreedingRegions = content;
-      }else if ("code".equalsIgnoreCase(qName)){
+
+      } else if ("code".equalsIgnoreCase(qName)) {
         current.code = content;
-      }else if ("note".equalsIgnoreCase(qName)){
+
+      } else if ("note".equalsIgnoreCase(qName)) {
         current.note = content;
       }
     }
-
   }
 
 }

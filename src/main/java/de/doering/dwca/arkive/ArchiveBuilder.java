@@ -21,11 +21,9 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.utils.HttpUtil;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -83,8 +81,8 @@ public class ArchiveBuilder extends AbstractBuilder {
     private void findSpecies(String name) {
         String url = WEBSERVICE.replace("{SPECIES}", name.replace(" ", "%20"));
         try {
-            HttpUtil.Response resp = http.get(url);
-            List<MediaObject> images = processJson(resp.content);
+            String resp = http.get(url);
+            List<MediaObject> images = processJson(resp);
             if (!images.isEmpty()) {
                 usageCounter++;
                 writer.newRecord(name);
@@ -107,8 +105,6 @@ public class ArchiveBuilder extends AbstractBuilder {
 
         } catch (IOException e) {
             LOG.error("IOException for species {}", name, e);
-        } catch (URISyntaxException e) {
-            LOG.error("URISyntaxException for url {}", url, e);
         }
     }
 

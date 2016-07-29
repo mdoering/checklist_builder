@@ -15,7 +15,7 @@ public class ManualCli {
   public static void main(String[] args) {
     CliConfiguration cfg = new CliConfiguration();
     cfg.repository = new File("/Users/markus/Desktop/archives");
-    cfg.source = "pbdb";
+    cfg.source = "iocwbn";
 
     Injector inj = Guice.createInjector(new CliModule(cfg));
 

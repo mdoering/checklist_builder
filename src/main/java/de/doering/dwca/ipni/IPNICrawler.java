@@ -1,7 +1,5 @@
 package de.doering.dwca.ipni;
 
-import org.gbif.utils.HttpUtil;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +30,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public class IPNICrawler implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(IPNICrawler.class);
     private static final String DELIMITER = "%";
@@ -146,7 +146,7 @@ public class IPNICrawler implements Runnable {
         HttpGet get = new HttpGet(query);
 
         try(CloseableHttpResponse response = client.execute(get)) {
-            if (HttpUtil.success(response.getStatusLine())) {
+            if (HttpUtils.success(response.getStatusLine())) {
                 HttpEntity entity = response.getEntity();
                 entity.writeTo(out);
             } else {

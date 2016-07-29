@@ -1,16 +1,58 @@
 <eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.0.2/eml.xsd"
+         system="http://gbif.org" scope="system"
          xml:lang="en">
 
-    <dataset>
-        <title>Gray Card Index (GCI)</title>
-        <creator>
-            <organizationName>The Harvard University Herbaria</organizationName>
-        </creator>
-        <language>en</language>
-        <abstract>
-            <para>Over 350,000 records have come from the Gray Index (originally the Gray Herbarium Card Index) which includes names for New World taxa published on or after January 1886. Basic bibliographic details and date are included for each name and many records include information about types. The data were converted to electronic form in the early 1990s and much time has been invested in their standardization and verification since then. Although most of the citations in the Gray Index are for names also recorded in Index Kewensis, there are many records for New World infraspecific names which are unique to the Gray Index. The duplicate records are also of considerable value since they tend to be more detailed than the equivalent IK record and also because errors in either index can be detected by comparing records for the same name. Furthermore the Gray Index includes many records of typifications subsequent to the time of validation of a name (epi-, lecto- and neo-typifications) which are not duplicated elsewhere.</para>
-        </abstract>
-    </dataset>
+  <dataset>
+    <title>Gray Card Index in IPNI</title>
+    <creator>
+      <organizationName>The Plant Names Project</organizationName>
+      <electronicMailAddress>ipnifeedback@ipni.org</electronicMailAddress>
+    </creator>
+    <metadataProvider>
+      <organizationName>The Plant Names Project</organizationName>
+      <electronicMailAddress>ipnifeedback@ipni.org</electronicMailAddress>
+    </metadataProvider>
+    <language>en</language>
+    <pubDate>2016-04-01</pubDate>
+    <abstract>
+      <para>The Gray Card Index (GCI) subset of the International Plant Names Index (IPNI).</para>
+      <para>Over 350,000 records in IPNI have come from the Gray Index (originally the Gray Herbarium Card Index) which includes names for New World taxa published on or after January 1886.
+        Basic bibliographic details and date are included for each name and many records include information about types.
+        The data were converted to electronic form in the early 1990s and much time has been invested in their standardization and verification since then.
+        Although most of the citations in the Gray Index are for names also recorded in Index Kewensis, there are many records for New World infraspecific names which are unique to the Gray Index.
+        The duplicate records are also of considerable value since they tend to be more detailed than the equivalent IK record and also because errors in either index can be detected by comparing records for the same name.
+        Furthermore the Gray Index includes many records of typifications subsequent to the time of validation of a name (epi-, lecto- and neo-typifications) which are not duplicated elsewhere.</para>
+    </abstract>
+    <keywordSet>
+      <keyword>Nomenclatural Synonymy</keyword>
+      <keyword>ICBN</keyword>
+      <keyword>Nomenclature</keyword>
+      <keyword>Nomenclator</keyword>
+      <keyword>IPNI</keyword>
+      <keyword>Kew</keyword>
+      <keyword>Harvard</keyword>
+    </keywordSet>
+    <distribution scope="document">
+      <online>
+        <url function="information">http://www.ipni.org/about_the_index.html</url>
+      </online>
+    </distribution>
+    <contact>
+      <organizationName>International Plant Names Index</organizationName>
+      <electronicMailAddress>ipnifeedback@ipni.org</electronicMailAddress>
+    </contact>
+
+  </dataset>
+
+  <additionalMetadata>
+    <metadata>
+      <gbif>
+        <dateStamp>2016-07-08</dateStamp>
+        <resourceLogoUrl>http://www.ipni.org/images/logo/ipni_logo_90.png</resourceLogoUrl>
+      </gbif>
+    </metadata>
+  </additionalMetadata>
+
 </eml:eml>
