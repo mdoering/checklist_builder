@@ -25,8 +25,8 @@
         <gbif-httputils.version>0.10</gbif-httputils.version>
         <gbif-common.version>0.26</gbif-common.version>
         <gbif-api.version>0.39</gbif-api.version>
-      <name-parser.version>2.17</name-parser.version>
-
+        <name-parser.version>2.17</name-parser.version>
+        <gbif-parsers.version>0.27</gbif-parsers.version>
         <jcommander.version>1.48</jcommander.version>
         <httpcore.version>4.3.3</httpcore.version>
         <httpclient.version>4.5.2</httpclient.version>
@@ -281,6 +281,11 @@
         <groupId>org.gbif</groupId>
         <artifactId>name-parser</artifactId>
         <version>${name-parser.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif</groupId>
+        <artifactId>parsers</artifactId>
+        <version>${gbif-parsers.version}</version>
       </dependency>
 
         <!-- Test -->

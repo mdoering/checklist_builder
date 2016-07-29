@@ -1,6 +1,4 @@
-package de.doering.dwca.iocwbn;
-
-import org.gbif.api.model.registry.Dataset;
+package de.doering.dwca.ioc;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -23,7 +21,7 @@ public class IocXmlHandlerTest {
     SAXParserFactory factory = SAXParserFactory.newInstance();
 
     final SAXParser parser = factory.newSAXParser();
-    IocXmlHandler handler = new IocXmlHandler(null, new Dataset());
+    IocXmlHandler handler = new IocXmlHandler(null);
     Reader reader = new InputStreamReader(Resources.getResource("master_ioc-names_xml.xml").openStream(), "UTF-8");
     parser.parse(new InputSource(reader), handler);
 

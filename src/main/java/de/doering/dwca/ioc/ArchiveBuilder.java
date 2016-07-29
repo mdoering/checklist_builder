@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.doering.dwca.iocwbn;
+package de.doering.dwca.ioc;
 
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
@@ -34,14 +34,14 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class ArchiveBuilder extends AbstractBuilder {
-  private static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/master_ioc-names_xml.xml";
-  private static final String ENCODING = "UTF-8";
+  public static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/master_ioc-names_xml.xml";
+  public static final String ENCODING = "UTF-8";
   // metadata
-  private static final String HOMEPAGE = "http://www.worldbirdnames.org";
-  private static final String LOGO = "http://www.worldbirdnames.org/img/hdr7.jpg";
-  private static final String CONTACT_ORG = "IOC World Bird List";
+  public static final String HOMEPAGE = "http://www.worldbirdnames.org";
+  public static final String LOGO = "http://www.worldbirdnames.org/img/hdr7.jpg";
+  public static final String CONTACT_ORG = "IOC World Bird List";
   private static final String CONTACT_EMAIL = "worldbirdnames@gmail.com";
-  private static final String LICENSE = "Creative Commons Attribution 3.0 Unported License";
+  public static final String LICENSE = "Creative Commons Attribution 3.0 Unported License";
   private static final String TITLE = "IOC World Bird List, v";
   private static final String DESCRIPTION = "The IOC World Bird List is an open access resource of the international community of ornithologists. " +
       "Our goal is to facilitate worldwide communication in ornithology and conservation based on an  up-to-date classification of world birds and a set of English names that follows explicit guidelines for spelling and construction (Gill & Wright 2006).\n" +
@@ -69,7 +69,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     SAXParserFactory factory = SAXParserFactory.newInstance();
 
     final SAXParser parser = factory.newSAXParser();
-    IocXmlHandler handler = new IocXmlHandler(writer, dataset);
+    IocXmlHandler handler = new IocXmlHandler(writer);
 
     try {
       // execute

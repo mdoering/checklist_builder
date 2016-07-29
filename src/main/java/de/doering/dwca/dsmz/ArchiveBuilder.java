@@ -34,9 +34,9 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.ParagraphBuilder;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -190,18 +190,7 @@ VP= by an original publication in the IJSB/IJSEM
     }
 
     private String col(Row row, int column) {
-        Cell c = row.getCell(column);
-        if (c == null) {
-            return null;
-        }
-        switch (c.getCellType()) {
-            case Cell.CELL_TYPE_NUMERIC:
-                return String.valueOf((int) c.getNumericCellValue());
-            case Cell.CELL_TYPE_STRING:
-                return c.getStringCellValue();
-        }
-
-        return c.toString();
+      return ExcelUtils.col(row, column);
     }
 
 

@@ -1,6 +1,5 @@
-package de.doering.dwca.iocwbn;
+package de.doering.dwca.ioc;
 
-import org.gbif.api.model.registry.Dataset;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -31,7 +30,6 @@ public class IocXmlHandler extends SimpleSaxHandler {
   private Splitter commaSplit = Splitter.on(',').omitEmptyStrings().trimResults();
 
   private final DwcaWriter writer;
-  private final Dataset eml;
   private String version;
   private String year;
 
@@ -64,9 +62,8 @@ public class IocXmlHandler extends SimpleSaxHandler {
     areaLookup.put("SO. CONE", "Southern Cone");
   }
 
-  public IocXmlHandler(DwcaWriter writer, Dataset eml) throws IOException {
+  public IocXmlHandler(DwcaWriter writer) throws IOException {
     this.writer = writer;
-    this.eml = eml;
 
     // Root classification
     current = new Taxon();

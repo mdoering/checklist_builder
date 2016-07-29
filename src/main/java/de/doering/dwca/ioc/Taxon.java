@@ -1,4 +1,4 @@
-package de.doering.dwca.iocwbn;
+package de.doering.dwca.ioc;
 
 public class Taxon {
   public Integer id;
