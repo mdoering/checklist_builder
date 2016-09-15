@@ -64,14 +64,14 @@ public class ArchiveBuilder extends AbstractBuilder {
     @Override
     protected void parseData() throws IOException {
         // loop over years
-        int year = 1900 + new Date().getYear();
+        int year = 1901 + new Date().getYear();
         while (year >= MIN_YEAR) {
             searchYear(year);
             year--;
         }
 
         // Wait until all threads are finish
-        int running = 0;
+      int running = 0;
         do {
             try {
                 Thread.sleep(1000);

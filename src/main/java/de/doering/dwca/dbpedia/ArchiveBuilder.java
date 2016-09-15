@@ -18,7 +18,6 @@ package de.doering.dwca.dbpedia;
 import org.gbif.api.vocabulary.DatasetType;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 import com.google.inject.Inject;
 import com.hp.hpl.jena.query.Query;
@@ -32,11 +31,10 @@ import de.doering.dwca.CliConfiguration;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
-    private Pattern cleanFamily = Pattern.compile("^([^ ,(]+)");
-    private static final String SPARQL_ENDPOINT = "http://dbpedia.org/sparql";
+    private static final String DOWNLOAD = "http://dbpedia.org/sparql";
     // metadata
     private static final String TITLE = "DBPedia";
-    private static final String HOMEPAGE = "http://www.dbpedia.org/";
+    private static final String HOMEPAGE = "http://downloads.dbpedia.org/current/core/";
     private static final String CITATION = "";
     private static final String LOGO = null;
     private static final String DESCRIPTION = "";

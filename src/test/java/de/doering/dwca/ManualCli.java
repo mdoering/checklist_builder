@@ -15,7 +15,7 @@ public class ManualCli {
   public static void main(String[] args) {
     CliConfiguration cfg = new CliConfiguration();
     cfg.repository = new File("/Users/markus/Desktop/archives");
-    cfg.source = "iocml";
+    cfg.source = "dsmz";
 
     Injector inj = Guice.createInjector(new CliModule(cfg));
 

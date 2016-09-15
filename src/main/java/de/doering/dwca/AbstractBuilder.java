@@ -15,7 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
+import javax.annotation.Nullable;
 
+import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -32,9 +34,13 @@ public abstract class AbstractBuilder implements Runnable {
   private final DatasetType type;
 
   public AbstractBuilder(DatasetType type, CliConfiguration cfg) {
+    this(type, cfg, null);
+  }
+
+  public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable BasicAuthContextProvider authContextProvider) {
     this.cfg = cfg;
     client = HttpUtils.newMultithreadedClient(cfg.timeout * 1000, 50, 50);
-    http = new HttpUtils(client);
+    http = new HttpUtils(client, authContextProvider);
     this.type = type;
   }
 
@@ -135,4 +141,5 @@ public abstract class AbstractBuilder implements Runnable {
     }
     return null;
   }
+
 }

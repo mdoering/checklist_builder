@@ -12,14 +12,19 @@ import java.util.Date;
 import java.util.Locale;
 import javax.net.ssl.SSLContext;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -27,6 +32,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
@@ -40,10 +46,21 @@ import org.slf4j.LoggerFactory;
 public class HttpUtils {
   private static Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
   private final CloseableHttpClient client;
+  private final BasicAuthContextProvider authContextProvider;
   private static final String LAST_MODIFIED = "Last-Modified";
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
+  static {
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  }
 
   public HttpUtils(CloseableHttpClient client) {
+    this(client, null);
+  }
+
+  public HttpUtils(CloseableHttpClient client, BasicAuthContextProvider authContextProvider) {
     this.client = client;
+    this.authContextProvider = authContextProvider ;
   }
 
   public static CloseableHttpClient newMultithreadedClient(int timeout, int maxConnections, int maxPerRoute) {
@@ -75,14 +92,15 @@ public class HttpUtils {
     cm.setMaxTotal(maxConnections);
     cm.setDefaultMaxPerRoute(maxPerRoute);
 
-    return HttpClients.custom()
+    HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(cm)
-        .setDefaultRequestConfig(defaultRequestConfig)
-        .build();
+        .setDefaultRequestConfig(defaultRequestConfig);
+
+    return builder.build();
   }
 
   public String get(String url) throws IOException {
-    try (CloseableHttpResponse response = client.execute(new HttpGet(url))) {
+    try (CloseableHttpResponse response = execute(new HttpGet(url))) {
       if (HttpUtils.success(response.getStatusLine())) {
         return EntityUtils.toString(response.getEntity());
       }
@@ -97,7 +115,7 @@ public class HttpUtils {
     HttpGet get = new HttpGet(url.toString());
 
     // execute
-    CloseableHttpResponse response = client.execute(get);
+    CloseableHttpResponse response = execute(get);
     final StatusLine status = response.getStatusLine();
     try {
       // write to file only when download succeeds
@@ -111,6 +129,25 @@ public class HttpUtils {
       closeQuietly(response);
     }
     return status;
+  }
+
+  private CloseableHttpResponse execute(HttpUriRequest req) throws IOException {
+    return authContextProvider == null ? client.execute(req) : client.execute(req, authContextProvider.newBasicAuthContext());
+  }
+
+  public <T> T readJson(String url, Class<T> objClazz) throws IOException {
+    HttpUriRequest request = RequestBuilder.get()
+        .setUri(url)
+        .setHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+        .setHeader(HttpHeaders.ACCEPT, "application/json")
+        .build();
+    try (CloseableHttpResponse response = execute(request)) {
+      if (HttpUtils.success(response.getStatusLine())) {
+        return MAPPER.readValue(response.getEntity().getContent(), objClazz);
+      }
+      LOG.warn("Error getting {}: {}", url, response.getStatusLine());
+      return null;
+    }
   }
 
   public static boolean success(StatusLine status) {
