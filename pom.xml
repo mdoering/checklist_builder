@@ -23,7 +23,7 @@
     <compress.version>1.5</compress.version>
     <dwc-api.version>1.16</dwc-api.version>
     <dwca-io.version>1.26</dwca-io.version>
-    <flickr.version>1.2</flickr.version>
+    <flickr4j.version>2.16</flickr4j.version>
     <gbif-api.version>0.39</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
     <gbif-common.version>0.26</gbif-common.version>
@@ -51,6 +51,16 @@
   <build>
     <defaultGoal>process-resources</defaultGoal>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -246,10 +256,9 @@
 
     <!-- source specifics -->
     <dependency>
-      <!-- replace with https://github.com/callmeal/Flickr4Java -->
-      <groupId>com.aetrion.flickr</groupId>
-      <artifactId>flickrapi</artifactId>
-      <version>${flickr.version}</version>
+      <groupId>com.flickr4java</groupId>
+      <artifactId>flickr4java</artifactId>
+      <version>${flickr4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.ccil.cowan.tagsoup</groupId>

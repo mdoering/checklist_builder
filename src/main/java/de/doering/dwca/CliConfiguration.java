@@ -24,6 +24,16 @@ public class CliConfiguration {
   @Parameter(names = {"--timeout"})
   public int timeout = 600;
 
+  @Parameter(names = {"--threads"})
+  public int threads = 6;
+
+  @Parameter(names = {"--flickr-key"})
+  public String flickrKey = "59c1f626e17ddc0e37160b56d7b21ea3";
+
+  @Parameter(names = {"--flickr-secret"})
+  public String flickrSecret = "56cf7af06a966665";
+
+
   /**
    * Returns the directory with the decompressed archive folder created by the checklist builder
    */
