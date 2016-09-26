@@ -34,9 +34,10 @@ import org.slf4j.LoggerFactory;
 
 public class ExtractYear implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(ExtractYear.class);
-  private Pattern SPLIT_MTAG = Pattern.compile("([a-z]+:[a-z0-9_]+)=(.+)", Pattern.CASE_INSENSITIVE);
-  private final int PAGESIZE = 100;
-  private final int MAX_PAGES = 10;
+  private static final int MAX_PAGES = 10;
+  private static final Pattern SPLIT_MTAG = Pattern.compile("([a-z]+:[a-z0-9_]+)=(.+)", Pattern.CASE_INSENSITIVE);
+
+  private final int pageSize;
   private final SearchParameters PARAMS = new SearchParameters();
   private final Year year;
   private Date minSearched;
@@ -90,6 +91,7 @@ public class ExtractYear implements Runnable {
   public ExtractYear(CliConfiguration cfg, int year, ImageWriter imgWriter) {
     this.year = Year.of(year);
     this.currPage  = 1;
+    pageSize = cfg.flickrPageSize;
     this.imgWriter = imgWriter;
     this.cache = CacheBuilder.newBuilder().maximumSize(1+cfg.flickrCacheSize/cfg.threads).build();
 
@@ -141,7 +143,7 @@ public class ExtractYear implements Runnable {
   private boolean processPage() {
     try {
       LOG.debug("Searching {} with page {}", year, currPage);
-      PhotoList list = f.getPhotosInterface().search(PARAMS, PAGESIZE, currPage);
+      PhotoList list = f.getPhotosInterface().search(PARAMS, pageSize, currPage);
       if (list.isEmpty()){
         return false;
       }
@@ -153,7 +155,7 @@ public class ExtractYear implements Runnable {
         // encountered this image before? As we search without transactions across years we might hit duplicates
         // detecting this early avoid tag loading through API
         if (cache.getIfPresent(photo.getId()) != null){
-          LOG.debug("image {} written before", photo.getUsage());
+          LOG.debug("image {} written before", photo.getUrl());
           continue;
         } else {
           cache.put(photo.getId(), true);
@@ -205,11 +207,11 @@ public class ExtractYear implements Runnable {
 
     Map<String, String> tags = buildTagMap(photo);
     for (String key: tags.keySet()){
-      key = key.toLowerCase();
-      if (TAG_MAPPING.containsKey(key)){
+      final String keyLowered = key.toLowerCase();
+      if (TAG_MAPPING.containsKey(keyLowered)){
         String val = Strings.emptyToNull(tags.get(key).trim());
         if (val != null) {
-          img.setAttribute(TAG_MAPPING.get(key), val);
+          img.setAttribute(TAG_MAPPING.get(keyLowered), val);
         }
       }
     }
