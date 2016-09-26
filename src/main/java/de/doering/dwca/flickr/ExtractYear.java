@@ -22,6 +22,8 @@ import com.flickr4java.flickr.photos.PhotoList;
 import com.flickr4java.flickr.photos.SearchParameters;
 import com.flickr4java.flickr.tags.Tag;
 import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,6 +43,7 @@ public class ExtractYear implements Runnable {
   private int currPage = 0;
   private int imgCounter = 0;
   private final ImageWriter imgWriter;
+  private final Cache<String, Boolean> cache;
 
   private static final Map<String, Term> TAG_MAPPING = Maps.newHashMap();
   private Flickr f;
@@ -88,6 +91,7 @@ public class ExtractYear implements Runnable {
     this.year = Year.of(year);
     this.currPage  = 1;
     this.imgWriter = imgWriter;
+    this.cache = CacheBuilder.newBuilder().maximumSize(1+cfg.flickrCacheSize/cfg.threads).build();
 
     Transport transport = new REST();
     f = new Flickr(cfg.flickrKey, cfg.flickrSecret, transport);
@@ -115,32 +119,15 @@ public class ExtractYear implements Runnable {
   public void run() {
     LOG.info("Start flickr export job for year {}", year);
     // call one search after the other until we cant find any more images
-    List<FlickrImage> images = search();
-    while(images != null){
-      // write images
-      int imgCounterPrev = imgCounter;
-      for (FlickrImage img : images){
-        if (img == null) continue;
-        try {
-          LOG.debug("Writing image {} for year {}", img.getLink(), year);
-          if (imgWriter.writeImage(img)) {
-            imgCounter++;
-          } else {
-            LOG.debug("image {} failed for year {}", img.getLink(), year);
-          }
-        } catch (Exception e) {
-          LOG.error("Failed to write {} images for year {} of page {}", images.size(), year, currPage, e);
-        }
-      }
-      LOG.debug("Written {} new images for year {}, {} in total", imgCounter-imgCounterPrev, year, imgCounter);
-
+    boolean more = processPage();
+    while(more){
       currPage++;
       if (currPage % MAX_PAGES == 0){
         // modify search to please Flickr, set new minimum upload date
         PARAMS.setMaxUploadDate(minSearched);
         LOG.info("Rebuild {} query with maxUploadDate={}", year, minSearched);
       }
-      images = search();
+      more = processPage();
     }
     LOG.info("Finishing year {} with {} images and {} searched page in total", year, imgCounter, currPage);
   }
@@ -151,38 +138,51 @@ public class ExtractYear implements Runnable {
    *
    * @return list of populated images or null if no more images could be found.
    */
-  private List<FlickrImage> search() {
-    List<FlickrImage> images = Lists.newArrayList();
+  private boolean processPage() {
     try {
       LOG.debug("Searching {} with page {}", year, currPage);
       PhotoList list = f.getPhotosInterface().search(PARAMS, PAGESIZE, currPage);
       if (list.isEmpty()){
-        return null;
+        return false;
       }
+
       LOG.debug("Found {} new images for year {} on page {}, loading photo details.", list.size(), year, currPage);
-      for (Iterator iterator = list.iterator(); iterator.hasNext(); ) {
-        Photo photo = (Photo) iterator.next();
+      final int imgCounterPrev = imgCounter;
+      for (Iterator<Photo> iterator = list.iterator(); iterator.hasNext(); ) {
+        Photo photo = iterator.next();
+        // encountered this image before? As we search without transactions across years we might hit duplicates
+        // detecting this early avoid tag loading through API
+        if (cache.getIfPresent(photo.getId()) != null){
+          LOG.debug("image {} written before", photo.getUsage());
+          continue;
+        } else {
+          cache.put(photo.getId(), true);
+        }
+
         // remember date uploaded
         Date newPosted = photo.getDatePosted();
         if (minSearched==null || newPosted.before(minSearched)){
           minSearched = newPosted;
         }
 
-        FlickrImage img = extract(photo);
-        if (img!=null){
-          images.add(img);
-        } else {
-          LOG.debug("No suitable image for year {}: {}", year, photo.getUrl());
+        try {
+          if (imgWriter.writeImage(convert(photo))) {
+            imgCounter++;
+          }
+        } catch (Exception e) {
+          LOG.error("Failed to write image {} for year {}", photo.getUrl(), year, e);
         }
       }
+      LOG.debug("Written {} new images for year {}, {} in total", imgCounter-imgCounterPrev, year, imgCounter);
+
     } catch (Exception e) {
       LOG.error("Failed to search {} for photo page {}", year, currPage, e);
     }
 
-    return images;
+    return true;
   }
 
-  private FlickrImage extract(Photo photo) {
+  private FlickrImage convert(Photo photo) {
     FlickrImage img = new FlickrImage();
     img.setId(photo.getId());
     img.setLink(photo.getUrl());
@@ -205,13 +205,21 @@ public class ExtractYear implements Runnable {
 
     Map<String, String> tags = buildTagMap(photo);
     for (String key: tags.keySet()){
+      key = key.toLowerCase();
       if (TAG_MAPPING.containsKey(key)){
-        img.setAttribute(TAG_MAPPING.get(key), Strings.emptyToNull(tags.get(key).trim()));
+        String val = Strings.emptyToNull(tags.get(key).trim());
+        if (val != null) {
+          img.setAttribute(TAG_MAPPING.get(key), val);
+        }
       }
     }
 
-    // only return images with a scientific name
-    return img.getScientificName() != null ? img : null;
+    return img;
+  }
+
+  private FlickrImage loadPhoto(String id) throws FlickrException {
+    Photo photo = f.getPhotosInterface().getPhoto(id);
+    return convert(photo);
   }
 
   private Map<String, String> buildTagMap(Photo photo){
@@ -232,4 +240,9 @@ public class ExtractYear implements Runnable {
     return map;
   }
 
+  public static void main(String[] args) throws FlickrException {
+    // try individual photo
+    ExtractYear extracter = new ExtractYear(new CliConfiguration(), 2016, null);
+    extracter.loadPhoto("23785077770");
+  }
 }

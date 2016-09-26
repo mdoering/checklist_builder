@@ -47,7 +47,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   @Override
   protected void parseData() throws IOException, FlickrException {
-    ImageWriter imgWriter = new ImageWriter(writer);
+    ImageWriter imgWriter = new ImageWriter(writer, cfg.flickrCacheSize);
     // loop over years
     int year = Year.now().getValue();
     while (year >= MIN_YEAR) {
