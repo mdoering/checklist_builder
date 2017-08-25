@@ -1,10 +1,10 @@
 package de.doering.dwca;
 
-import java.io.File;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.junit.Ignore;
+
+import java.io.File;
 
 /**
  *
@@ -15,7 +15,7 @@ public class ManualCli {
   public static void main(String[] args) {
     CliConfiguration cfg = new CliConfiguration();
     cfg.repository = new File("/Users/markus/Desktop/archives");
-    cfg.source = "flickr";
+    cfg.source = "clements";
 
     Injector inj = Guice.createInjector(new CliModule(cfg));
 

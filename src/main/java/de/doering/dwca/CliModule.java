@@ -1,7 +1,7 @@
 package de.doering.dwca;
 
 import com.google.inject.AbstractModule;
-import de.doering.dwca.clemens.ArchiveBuilder;
+import de.doering.dwca.clements.ArchiveBuilder;
 
 public class CliModule extends AbstractModule {
     private final CliConfiguration cfg;

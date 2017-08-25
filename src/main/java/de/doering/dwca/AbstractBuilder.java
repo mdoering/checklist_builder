@@ -1,5 +1,9 @@
 package de.doering.dwca;
 
+import de.doering.dwca.utils.BasicAuthContextProvider;
+import de.doering.dwca.utils.HttpUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
@@ -10,19 +14,14 @@ import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwca.io.DwcaWriter;
 import org.gbif.utils.file.CompressionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
-import javax.annotation.Nullable;
-
-import de.doering.dwca.utils.BasicAuthContextProvider;
-import de.doering.dwca.utils.HttpUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractBuilder implements Runnable {
   protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
@@ -85,6 +84,8 @@ public abstract class AbstractBuilder implements Runnable {
   }
 
   protected void addContact(String org, String email) {
+    addContact(org, null, null, email, ContactType.ORIGINATOR);
+    // or use ADMINISTRATIVE_POINT_OF_CONTACT ?
     addContact(org, null, null, email, ContactType.POINT_OF_CONTACT);
   }
 
@@ -97,7 +98,7 @@ public abstract class AbstractBuilder implements Runnable {
   }
 
   protected void addContact(String org, String firstname, String lastname, String email) {
-    addContact(org, firstname, lastname, email, ContactType.POINT_OF_CONTACT);
+    addContact(org, firstname, lastname, email, ContactType.ORIGINATOR);
   }
 
   protected void addContact(String org, String firstname, String lastname, String email, ContactType role) {

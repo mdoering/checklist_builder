@@ -15,7 +15,14 @@
  */
 package de.doering.dwca.ictv;
 
-import org.gbif.api.vocabulary.ContactType;
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import de.doering.dwca.AbstractBuilder;
+import de.doering.dwca.CliConfiguration;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.*;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -29,26 +36,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
   private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/5945/download";
-  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2015 v1.xlsx");
-  private static final String PUBDATE = "2016-05-26";
-  private static final String VERSION = "New MSL including all taxa updates since the 2014 release. " +
-      "Updates approved during EC 47, London, UK, July 2015 (MSL #30) and ratified by the ICTV membership in 2016";
+  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2016 v1.3.xlsx");
+  private static final String PUBDATE = "2017-05-25";
+  private static final String VERSION = "2016 v1.3";
 
   // metadata
   private static final String ORG = " International Committee on Taxonomy of Viruses (ICTV)";
@@ -173,21 +166,19 @@ public class ArchiveBuilder extends AbstractBuilder {
   @Override
   protected void addMetadata() {
     // metadata
-    dataset.setTitle("ICTV Master Species List");
+    dataset.setTitle("ICTV Master Species List " + VERSION);
     dataset.setDescription("Official lists of all ICTV-approved taxa.\n" +
         "\n" +
         "The creation or elimination, (re)naming, and (re)assignment of a virus species, genus, (sub)family, or order are all taxonomic acts that require public scrutiny and debate, leading to formal approval by the full membership of the ICTV. " +
         "In contrast, the naming of a virus isolate and its assignment to a pre-existing species are not considered taxonomic acts and therefore do not require formal ICTV approval. " +
         "Instead they will typically be accomplished by publication of a paper describing the virus isolate in the peer-reviewed virology literature.\n" +
         "\n" +
-        "Descriptions of virus satellites, viroids and the agents of spongiform encephalopathies (prions) of humans and several animal and fungal species are included.\n" +
-        "\n" +
-        VERSION);
+        "Descriptions of virus satellites, viroids and the agents of spongiform encephalopathies (prions) of humans and several animal and fungal species are included.\n"
+    );
     dataset.setHomepage(uri("http://www.ictvonline.org/virusTaxInfo.asp"));
     dataset.setLogoUrl(uri("https://raw.githubusercontent.com/mdoering/checklist_builder/master/src/main/resources/ictv/ictv-logo.png"));
     setPubDate(PUBDATE);
     addExternalData(DOWNLOAD, null);
-    addContact(ORG, CONTACT_EMAIL, ContactType.ORIGINATOR);
-    addContact(ORG, CONTACT_EMAIL, ContactType.POINT_OF_CONTACT);
+    addContact(ORG, CONTACT_EMAIL);
   }
 }

@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.doering.dwca.clemens;
+package de.doering.dwca.clements;
 
+import com.google.common.base.Strings;
+import com.google.inject.Inject;
+import de.doering.dwca.AbstractBuilder;
+import de.doering.dwca.CliConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -31,14 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.google.common.base.Strings;
-import com.google.inject.Inject;
-import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -58,6 +58,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     private static final String CONTACT_EMAIL = "cornellbirds@cornell.edu";
 
     // sort v2015,Clements v2015 change,Text for website v2015,Category,English name,Scientific name,Range,Order,Family,EXTINCT,EXTINCT_YEAR_CLEMENTS,sort 6.9,sort 6.8,PAGE 6.0
+    // sort v2017,Clements v2017 change,text for website v2017,category,English name,scientific name,range,order,family,extinct,extinct year,sort v2016,page 6.0,,,,,,,,,,,
     private static final int COL_ID = 0;
     private static final int COL_REMARKS = 2;
     private static final int COL_RANK = 3;
@@ -110,14 +111,12 @@ public class ArchiveBuilder extends AbstractBuilder {
                     LOG.warn("Row with too little columns: {}", line);
                     continue;
                 }
-                Integer id = null;
-                try {
-                    id = Integer.parseInt(row[COL_ID]);
-                } catch (NumberFormatException e) {
-                    LOG.warn("Suspicous row with non integer id, ignore line: {}", line);
+                String id = row[COL_ID];
+                if (StringUtils.isBlank(id)) {
+                    LOG.warn("Suspicous row with empty id, ignore line: {}", line);
                     continue;
                 }
-                writer.newRecord(id.toString());
+                writer.newRecord(id);
                 writer.addCoreColumn(DwcTerm.scientificName, row[COL_NAME]);
                 writer.addCoreColumn(DwcTerm.taxonRank, row[COL_RANK]);
                 writer.addCoreColumn(DwcTerm.kingdom, "Animalia");
