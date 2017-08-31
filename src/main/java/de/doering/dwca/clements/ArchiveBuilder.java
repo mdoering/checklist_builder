@@ -28,15 +28,13 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.io.CSVReader;
-import org.gbif.io.CSVReaderFactory;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.prefs.CsvPreference;
 
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.DateFormatSymbols;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,51 +98,59 @@ public class ArchiveBuilder extends AbstractBuilder {
         // download
         CloseableHttpResponse response = client.execute(get);
         try {
+            if (response.getStatusLine().getStatusCode() != 200) {
+                LOG.error("Unable to download Clements CSV from {}: {}", url, response.getStatusLine());
+                throw new IllegalStateException("Unable to download Clements CSV: " + response.getStatusLine().toString());
+            }
             HttpEntity entity = response.getEntity();
-            CSVReader reader = CSVReaderFactory.build(entity.getContent(), ENCODING, DELIMITER, QUOTES, HEADER_ROWS);
+            CsvListReader reader = new CsvListReader(new InputStreamReader(entity.getContent()), CsvPreference.EXCEL_PREFERENCE);
 
             // parse rows
-            int line = HEADER_ROWS;
-            for (String[] row : reader) {
+            int line = 0;
+            List<String> row;
+            while ( (row = reader.read()) != null) {
                 line++;
-                if (row == null || row.length < COL_MIN) {
+                if (line <= HEADER_ROWS) {
+                    continue;
+                }
+                if (row.size() < COL_MIN) {
                     LOG.warn("Row with too little columns: {}", line);
                     continue;
                 }
-                String id = row[COL_ID];
+                String id = row.get(COL_ID);
                 if (StringUtils.isBlank(id)) {
                     LOG.warn("Suspicous row with empty id, ignore line: {}", line);
                     continue;
                 }
                 writer.newRecord(id);
-                writer.addCoreColumn(DwcTerm.scientificName, row[COL_NAME]);
-                writer.addCoreColumn(DwcTerm.taxonRank, row[COL_RANK]);
+                writer.addCoreColumn(DwcTerm.scientificName, row.get(COL_NAME));
+                writer.addCoreColumn(DwcTerm.taxonRank, row.get(COL_RANK));
                 writer.addCoreColumn(DwcTerm.kingdom, "Animalia");
                 writer.addCoreColumn(DwcTerm.class_, "Aves");
-                writer.addCoreColumn(DwcTerm.order, row[COL_ORDER]);
-                if (Strings.isNullOrEmpty(row[COL_FAMILY])) {
-                    Matcher m = cleanFamily.matcher(row[COL_FAMILY]);
+                writer.addCoreColumn(DwcTerm.order, row.get(COL_ORDER));
+                if (!Strings.isNullOrEmpty(row.get(COL_FAMILY))) {
+                    Matcher m = cleanFamily.matcher(row.get(COL_FAMILY));
                     if (m.find()) {
                         writer.addCoreColumn(DwcTerm.family, m.group());
                     }
                 }
-                writer.addCoreColumn(DwcTerm.taxonRemarks, row[COL_REMARKS]);
+                writer.addCoreColumn(DwcTerm.taxonRemarks, row.get(COL_REMARKS));
 
                 Map<Term, String> data = new HashMap<Term, String>();
-                data.put(DwcTerm.vernacularName, row[COL_EN_NAME]);
+                data.put(DwcTerm.vernacularName, row.get(COL_EN_NAME));
                 data.put(DcTerm.language, "en");
                 writer.addExtensionRecord(GbifTerm.VernacularName, data);
 
                 data = new HashMap<Term, String>();
-                data.put(DcTerm.description, row[COL_RANGE]);
+                data.put(DcTerm.description, row.get(COL_RANGE));
                 data.put(DcTerm.type, "Distribution");
                 writer.addExtensionRecord(GbifTerm.Description, data);
 
                 // extinct
                 data = new HashMap<Term, String>();
-                data.put(GbifTerm.isExtinct, "1".equalsIgnoreCase(Strings.nullToEmpty(row[COL_EXTINCT])) ? "true" : "false");
-                if (!Strings.isNullOrEmpty(row[COL_EXTINCT_YEAR])) {
-                    data.put(GbifTerm.livingPeriod, "Recent until " + row[COL_EXTINCT_YEAR]);
+                data.put(GbifTerm.isExtinct, "1".equalsIgnoreCase(Strings.nullToEmpty(row.get(COL_EXTINCT))) ? "true" : "false");
+                if (!Strings.isNullOrEmpty(row.get(COL_EXTINCT_YEAR))) {
+                    data.put(GbifTerm.livingPeriod, "Recent until " + row.get(COL_EXTINCT_YEAR));
                 }
                 writer.addExtensionRecord(GbifTerm.SpeciesProfile, data);
             }

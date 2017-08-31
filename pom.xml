@@ -45,6 +45,7 @@
     <poi.version>3.12</poi.version>
     <postgresql.version>9.4.1208.jre7</postgresql.version>
     <slf4j.version>1.7.21</slf4j.version>
+    <super-csv.version>2.4.0</super-csv.version>
     <tagsoup.version>1.2.1</tagsoup.version>
   </properties>
 
@@ -314,6 +315,11 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-parsers</artifactId>
       <version>${gbif-parsers.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.supercsv</groupId>
+      <artifactId>super-csv</artifactId>
+      <version>${super-csv.version}</version>
     </dependency>
 
     <!-- Test -->
