@@ -141,28 +141,6 @@ public class ArchiveBuilder extends AbstractBuilder {
     return x != null && x.trim().equals("1");
   }
 
-
-  private String col(Row row, int column) {
-    Cell c = row.getCell(column);
-    if (c == null) {
-      return null;
-    }
-    String val;
-    switch (c.getCellType()) {
-      case Cell.CELL_TYPE_NUMERIC:
-        val = String.valueOf((int) c.getNumericCellValue());
-        break;
-      case Cell.CELL_TYPE_STRING:
-        val = c.getStringCellValue();
-        break;
-      default:
-        val = c.toString();
-    }
-
-    return Strings.nullToEmpty(val.trim()).replace("Unassigned", "");
-  }
-
-
   @Override
   protected void addMetadata() {
     // metadata

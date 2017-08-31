@@ -22,11 +22,11 @@
     <beanutils.version>1.8.3</beanutils.version>
     <compress.version>1.5</compress.version>
     <dwc-api.version>1.16</dwc-api.version>
-    <dwca-io.version>1.26</dwca-io.version>
+    <dwca-io.version>1.31</dwca-io.version>
     <flickr4j.version>2.16</flickr4j.version>
     <gbif-api.version>0.39</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
-    <gbif-common.version>0.26</gbif-common.version>
+    <gbif-common.version>0.36</gbif-common.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.28</gbif-parsers.version>
     <guava.version>18.0</guava.version>
@@ -45,7 +45,6 @@
     <poi.version>3.12</poi.version>
     <postgresql.version>9.4.1208.jre7</postgresql.version>
     <slf4j.version>1.7.21</slf4j.version>
-    <super-csv.version>2.4.0</super-csv.version>
     <tagsoup.version>1.2.1</tagsoup.version>
   </properties>
 
@@ -315,11 +314,6 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-parsers</artifactId>
       <version>${gbif-parsers.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.supercsv</groupId>
-      <artifactId>super-csv</artifactId>
-      <version>${super-csv.version}</version>
     </dependency>
 
     <!-- Test -->

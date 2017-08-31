@@ -1,9 +1,11 @@
 package de.doering.dwca;
 
 import de.doering.dwca.utils.BasicAuthContextProvider;
+import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.poi.ss.usermodel.Row;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
@@ -74,6 +76,11 @@ public abstract class AbstractBuilder implements Runnable {
       throw new RuntimeException(e);
     }
   }
+
+  protected String col(Row row, int column) {
+    return ExcelUtils.col(row, column);
+  }
+
 
   protected abstract void parseData() throws Exception;
 

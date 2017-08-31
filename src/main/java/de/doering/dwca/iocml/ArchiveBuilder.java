@@ -15,31 +15,12 @@
  */
 package de.doering.dwca.iocml;
 
-import org.gbif.api.vocabulary.DatasetType;
-import org.gbif.api.vocabulary.Language;
-import org.gbif.common.parsers.LanguageParser;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Iterator;
-import java.util.Map;
-import javax.annotation.Nullable;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
 import de.doering.dwca.ioc.IocXmlHandler;
-import de.doering.dwca.utils.ExcelUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -48,7 +29,24 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.gbif.api.vocabulary.DatasetType;
+import org.gbif.api.vocabulary.Language;
+import org.gbif.common.parsers.LanguageParser;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.xml.sax.InputSource;
+
+import javax.annotation.Nullable;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Iterator;
+import java.util.Map;
 
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
@@ -198,10 +196,6 @@ public class ArchiveBuilder extends AbstractBuilder {
       }
       idx++;
     }
-  }
-
-  private String col(Row row, int column) {
-    return ExcelUtils.col(row, column);
   }
 
   @Override

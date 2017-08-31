@@ -15,6 +15,19 @@
  */
 package de.doering.dwca.dsmz;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import de.doering.dwca.AbstractBuilder;
+import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.utils.BasicAuthContextProvider;
+import de.doering.dwca.utils.ParagraphBuilder;
+import org.apache.http.HttpHost;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Rank;
@@ -29,21 +42,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
-import de.doering.dwca.utils.BasicAuthContextProvider;
-import de.doering.dwca.utils.ExcelUtils;
-import de.doering.dwca.utils.ParagraphBuilder;
-import org.apache.http.HttpHost;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -231,10 +229,6 @@ VP= by an original publication in the IJSB/IJSEM
       return null;
     }
     return Strings.emptyToNull(taxon.trim());
-  }
-
-  private String col(Row row, int column) {
-    return ExcelUtils.col(row, column);
   }
 
 
