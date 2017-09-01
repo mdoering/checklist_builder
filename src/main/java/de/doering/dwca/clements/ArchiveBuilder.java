@@ -26,6 +26,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.gbif.api.model.registry.Citation;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -66,6 +67,12 @@ public class ArchiveBuilder extends AbstractBuilder {
     private static final int COL_FAMILY = 8;
     private static final int COL_EXTINCT = 9;
     private static final int COL_EXTINCT_YEAR = 10;
+    // reference sheet
+    private static final int COL_REF_ABBREV = 0;
+    private static final int COL_REF_AUTHOR = 2;
+    private static final int COL_REF_YEAR = 3;
+    private static final int COL_REF_TITLE = 4;
+    private static final int COL_REF_JOURNAL = 5;
 
     @Inject
     public ArchiveBuilder(CliConfiguration cfg) {
@@ -83,7 +90,7 @@ public class ArchiveBuilder extends AbstractBuilder {
         // in case we dont find a list for this month we get a 404 and exit
         Date today = new Date();
         int year = 1900 + today.getYear();
-        int month = 1 + today.getMonth();
+        int month = 8; //1 + today.getMonth();
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month-1);
@@ -106,12 +113,11 @@ public class ArchiveBuilder extends AbstractBuilder {
                 throw new IllegalStateException("Unable to download Clements XLS: " + response.getStatusLine().toString());
             }
             Workbook wb = WorkbookFactory.create(response.getEntity().getContent());
-            Sheet sheet = wb.getSheetAt(0);
-            int rows = sheet.getPhysicalNumberOfRows();
-            LOG.info("{} rows found in excel sheet", rows);
+            Sheet taxa = wb.getSheetAt(0);
+            LOG.info("{} taxa found in excel sheet", taxa.getPhysicalNumberOfRows());
             
             // parse rows
-            Iterator<Row> iter = sheet.rowIterator();
+            Iterator<Row> iter = taxa.rowIterator();
             while (iter.hasNext()) {
                 Row row = iter.next();
                 String id = col(row, COL_ID);
@@ -150,6 +156,26 @@ public class ArchiveBuilder extends AbstractBuilder {
                     data.put(GbifTerm.livingPeriod, "Recent until " + col(row, COL_EXTINCT_YEAR));
                 }
                 writer.addExtensionRecord(GbifTerm.SpeciesProfile, data);
+            }
+
+            // parse references and add to EML bibliography
+            Sheet refs = wb.getSheetAt(1);
+            LOG.info("{} references found in excel sheet", refs.getPhysicalNumberOfRows());
+            iter = refs.rowIterator();
+            while (iter.hasNext()) {
+                Row row = iter.next();
+                String abbrev = col(row, COL_REF_ABBREV);
+                if (StringUtils.isBlank(abbrev)) {
+                    LOG.warn("Suspicous reference with empty citation abbreviation, ignore line {}", row.getRowNum());
+                    continue;
+                }
+                String refCitation = buildCitation(col(row, COL_REF_AUTHOR), col(row, COL_REF_YEAR), col(row, COL_REF_TITLE), col(row, COL_REF_JOURNAL));
+                if (!StringUtils.isBlank(refCitation)) {
+                    Citation c = new Citation();
+                    c.setText(refCitation);
+                    c.setIdentifier(link(row, COL_REF_TITLE));
+                    dataset.getBibliographicCitations().add(c);
+                }
             }
         }
     }

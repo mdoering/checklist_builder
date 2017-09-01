@@ -29,4 +29,14 @@ public class ExcelUtils {
         return Strings.nullToEmpty(val.trim()).replace("Unassigned", "");
     }
 
+    /**
+     * @return link URL or null if none exists
+     */
+    public static String link(Row row, int column) {
+        Cell c = row.getCell(column);
+        if (c == null || c.getHyperlink() == null) {
+            return null;
+        }
+        return c.getHyperlink().getAddress();
+    }
 }

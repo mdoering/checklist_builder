@@ -81,6 +81,29 @@ public abstract class AbstractBuilder implements Runnable {
     return ExcelUtils.col(row, column);
   }
 
+  protected String link(Row row, int column) {
+    return ExcelUtils.link(row, column);
+  }
+
+  protected static String buildCitation(String author, String year, String title, String journal) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(trimOrDefault(author, "???"));
+    sb.append(" (");
+    sb.append(trimOrDefault(year, "???"));
+    sb.append("). ");
+    sb.append(appendDotIfNotEmpty(title));
+    sb.append(trimOrDefault(journal, ""));
+    return sb.toString().trim();
+  }
+
+  private static String appendDotIfNotEmpty(String x) {
+    return x.isEmpty() ? x : StringUtils.strip(x, " .") + ". ";
+  }
+
+  private static String trimOrDefault(String x, String defaultValue) {
+    x = StringUtils.strip(x, " .");
+    return StringUtils.isEmpty(x) ? defaultValue : x;
+  }
 
   protected abstract void parseData() throws Exception;
 
