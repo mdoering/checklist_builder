@@ -90,7 +90,7 @@ public class ArchiveBuilder extends AbstractBuilder {
         // in case we dont find a list for this month we get a 404 and exit
         Date today = new Date();
         int year = 1900 + today.getYear();
-        int month = 8; //1 + today.getMonth();
+        int month = 1 + today.getMonth();
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month-1);
