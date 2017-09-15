@@ -1,0 +1,27 @@
+The White House Subcommittee on Biodiversity and Ecosystem Dynamics has identified systematics as a research priority that is fundamental to ecosystem management and biodiversity conservation. This primary need identified by the Subcommittee requires improvements in the organization of, and access to, standardized nomenclature. ITIS (originally referred to as the Interagency Taxonomic Information System) was designed to fulfill these requirements. In the future, the ITIS will provide taxonomic data and a directory of taxonomic expertise that will support the system.
+
+The ITIS is the result of a partnership of federal agencies formed to satisfy their mutual needs for scientifically credible taxonomic information. Since its inception, ITIS has gained valuable new partners and undergone a name change; ITIS now stands for the Integrated Taxonomic Information System.
+
+The goal is to create an easily accessible database with reliable information on species names and their hierarchical classification. The database will be reviewed periodically to ensure high quality with valid classifications, revisions, and additions of newly described species. The ITIS includes documented taxonomic information of flora and fauna from both aquatic and terrestrial habitats.
+
+The original ITIS partners include:
+Department of Commerce
+    National Oceanic and Atmospheric Administration (NOAA)
+Department of Interior (DOI)
+    Geological Survey (USGS)
+Environmental Protection Agency (EPA)
+Department of Agriculture (USDA)
+    Agriculture Research Service (ARS)
+    Natural Resources Conservation Service (NRCS)
+Smithsonian Institution
+    National Museum of Natural History (NMNH)
+
+These agencies signed a Memorandum of Understanding and have formed a Steering Committee that directs two technical work groups - the Database Work Group (DWG) and the Taxonomy Work Group (TWG). The DWG is responsible for the database design and overseeing development of the system to meet the requirements of the ITIS partners. The TWG is responsible for the quality and integrity of the database information. In addition to the database, the working groups have created "Taxonomic Workbench" software designed for easy entry and manipulation of taxonomic data.
+
+Primary objectives of the TWG include the review of data prior to incorporation into the ITIS and the establishment of a process for periodic peer review to ensure data quality. The TWG has evaluated the taxonomic information priorities of the agencies and is locating data sources for the highest priority groups. Efforts to gather data are helping to identify gaps in taxonomic coverage in both scientific expertise and available information. The TWG hopes to promote collaboration among, and provide a point of focus for, taxonomists, scientific institutions, and taxonomic information users.
+
+For each scientific name, ITIS will include the authority (author and date), taxonomic rank, associated synonyms and vernacular names where available, a unique taxonomic serial number, data source information (publications, experts, etc.) and data quality indicators. Expert reviews and changes to taxonomic information in the database will be tracked. Geographic coverage will be worldwide with initial emphasis on North American taxa. The TWG is coordinating its efforts with several national and international biodiversity programs.
+
+ITIS will be a significant contribution to the scientific infrastructure that is fundamental to the description, conservation, and management of the nation's biodiversity. Use of the ITIS and the taxonomic serial numbers will facilitate sharing of biological information among researchers and cooperating agencies by providing a common framework for taxonomic data. Agencies that typically cannot afford to maintain taxonomic data will have access to high quality taxonomic information through ITIS. This project allows the coordination of efforts among federal agencies, thereby increasing productivity and saving resources.
+
+Status reports on ITIS system development may be found in the What's New section. You can also contact Gerald Guala, Ph.D., Director, Integrated Taxonomic Information System (ITIS) at U.S. Geological Survey, 12201 Sunrise Valley Drive, MS 302, Reston, VA 20192 or via email at itiswebmaster@itis.gov .

@@ -1,5 +1,8 @@
 package de.doering.dwca;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Throwables;
+import com.google.common.io.Resources;
 import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.HttpUtils;
@@ -107,6 +110,20 @@ public abstract class AbstractBuilder implements Runnable {
 
   protected abstract void parseData() throws Exception;
 
+  /**
+   * Reads a text file description from resources and translates that into paragraphs in the EML
+   */
+  protected void setDescription(String resourceName) {
+    try {
+      String desc = Resources.toString(Resources.getResource(resourceName), Charsets.UTF_8);
+      //TODO: parse paragraphs
+      dataset.setDescription(desc);
+
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
+  }
+
   protected abstract void addMetadata() throws Exception;
 
   protected void addMetadataProvider() {
@@ -138,6 +155,10 @@ public abstract class AbstractBuilder implements Runnable {
     contact.setFirstName(firstname);
     contact.setLastName(lastname);
     contact.getEmail().add(email);
+    dataset.getContacts().add(contact);
+  }
+
+  protected void addContact(Contact contact) {
     dataset.getContacts().add(contact);
   }
 
