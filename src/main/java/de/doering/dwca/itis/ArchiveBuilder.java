@@ -89,10 +89,6 @@ public class ArchiveBuilder extends AbstractBuilder {
    */
   @Override
   protected void parseData() throws Exception {
-    processSql(new File("/Users/markus/Downloads/itisSqlite083017/ITIS.sqlite"));
-  }
-
-  protected void parseDataREAL() throws Exception {
     // download latest ITIS as sqlite
     LOG.info("Downloading latest ITIS from {}", DOWNLOAD);
     final File tmp = FileUtils.createTempDir();
