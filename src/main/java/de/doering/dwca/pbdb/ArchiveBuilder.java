@@ -52,7 +52,8 @@ public class ArchiveBuilder extends AbstractBuilder {
     private static final String DESCRIPTION2 = "Fossil occurrences from scientific publications are added to the database by our contributing members. Thanks to our membership, which includes nearly 400 scientists from over 130 institutions in 24 countries, the Paleobiology Database is able to provide scientists and the public with information about the fossil record.";
     private static final String LICENSE = "This work is licensed under a Creative Commons Attribution (CC-BY) 4.0 License.";
 
-    private static final int COL_ID = 0;
+    private static final int COL_ORIGINAL_ID = 0;
+    private static final int COL_ID = 1;
     private static final int COL_RANK = 4;
     private static final int COL_NAME = 5;
     private static final int COL_AUTHOR = 6;
@@ -72,6 +73,10 @@ public class ArchiveBuilder extends AbstractBuilder {
     @Inject
     public ArchiveBuilder(CliConfiguration cfg) {
         super(DatasetType.CHECKLIST, cfg);
+    }
+
+    private String avoidZero(String x) {
+      return x != null && x.equals("0") ? null : x;
     }
 
     @Override
@@ -101,8 +106,9 @@ public class ArchiveBuilder extends AbstractBuilder {
                     continue;
                 }
                 writer.newRecord(id.toString());
-                writer.addCoreColumn(DwcTerm.acceptedNameUsageID, row.get(COL_ACCEPTED_ID));
-                writer.addCoreColumn(DwcTerm.parentNameUsageID, row.get(COL_PARENT_ID));
+                writer.addCoreColumn(DwcTerm.acceptedNameUsageID, avoidZero(row.get(COL_ACCEPTED_ID)));
+                writer.addCoreColumn(DwcTerm.parentNameUsageID, avoidZero(row.get(COL_PARENT_ID)));
+                writer.addCoreColumn(DwcTerm.originalNameUsageID, avoidZero(row.get(COL_ORIGINAL_ID)));
                 writer.addCoreColumn(DwcTerm.taxonRank, row.get(COL_RANK));
                 writer.addCoreColumn(DwcTerm.scientificName, row.get(COL_NAME));
                 writer.addCoreColumn(DwcTerm.scientificNameAuthorship, row.get(COL_AUTHOR));
