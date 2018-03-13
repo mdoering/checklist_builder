@@ -38,7 +38,7 @@ import java.util.Set;
 
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
-  private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/5945/download";
+  private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/7185/download";
   private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2016 v1.3.xlsx");
   private static final String PUBDATE = "2017-05-25";
   private static final String VERSION = "2016 v1.3";
@@ -69,8 +69,8 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   protected void parseData() throws IOException, InvalidFormatException {
     // get excel sheet
-    //parseData(downloadXls());
-    parseData(FILE);
+    parseData(downloadXls());
+    //parseData(FILE);
   }
 
   private File downloadXls() throws IOException, InvalidFormatException {

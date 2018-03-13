@@ -22,7 +22,7 @@
     <beanutils.version>1.8.3</beanutils.version>
     <compress.version>1.5</compress.version>
     <dwc-api.version>1.16</dwc-api.version>
-    <dwca-io.version>1.32-SNAPSHOT</dwca-io.version>
+    <dwca-io.version>1.32</dwca-io.version>
     <flickr4j.version>2.16</flickr4j.version>
     <gbif-api.version>0.39</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
