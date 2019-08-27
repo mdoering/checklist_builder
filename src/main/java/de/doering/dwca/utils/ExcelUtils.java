@@ -4,10 +4,14 @@ import com.google.common.base.Strings;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  *
  */
 public class ExcelUtils {
+  private final static Pattern HYPERLINK = Pattern.compile("HYPERLINK *\\( *\"(.+)\" *,", Pattern.CASE_INSENSITIVE);
 
     public static String col(Row row, int column) {
         Cell c = row.getCell(column);
@@ -34,9 +38,17 @@ public class ExcelUtils {
      */
     public static String link(Row row, int column) {
         Cell c = row.getCell(column);
-        if (c == null || c.getHyperlink() == null) {
-            return null;
+        if (c != null) {
+          if (c.getHyperlink() != null) {
+            return c.getHyperlink().getAddress();
+
+          } else if (c.getCellFormula() != null) {
+            Matcher m = HYPERLINK.matcher(c.getCellFormula());
+            if (m.find()) {
+              return m.group(1);
+            }
+          }
         }
-        return c.getHyperlink().getAddress();
+        return null;
     }
 }

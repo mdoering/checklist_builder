@@ -32,6 +32,7 @@ import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -39,9 +40,10 @@ import java.util.Set;
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
   private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/7185/download";
-  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2016 v1.3.xlsx");
-  private static final String PUBDATE = "2017-05-25";
-  private static final String VERSION = "2016 v1.3";
+  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2017 v1.0.xlsx");
+  private static final String PUBDATE = "2018-03-12";
+  private static final String VERSION = "2017 v1";
+  private static final URI PROPOSAL_URL = URI.create("https://data.ictvonline.org/proposals/");
 
   // metadata
   private static final String ORG = " International Committee on Taxonomy of Viruses (ICTV)";
@@ -58,9 +60,9 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int COL_SCI_NAME = 4;
 
   private static final int COL_TYPE_SPECIES = 5;
-  private static final int COL_GENBANK_ACCESSION = 6;
-  private static final int COL_COMPOSITION = 8;
-  private static final int COL_LINK = 12;
+  private static final int COL_COMPOSITION = 6;
+  private static final int COL_PROPOSAL = 9;
+  private static final int COL_LINK = 10;
 
   @Inject
   public ArchiveBuilder(CliConfiguration cfg) {
@@ -69,8 +71,8 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   protected void parseData() throws IOException, InvalidFormatException {
     // get excel sheet
-    parseData(downloadXls());
-    //parseData(FILE);
+    //parseData(downloadXls());
+    parseData(FILE);
   }
 
   private File downloadXls() throws IOException, InvalidFormatException {
@@ -111,7 +113,7 @@ public class ArchiveBuilder extends AbstractBuilder {
       writer.addCoreColumn(DwcTerm.scientificName, col(row, COL_SCI_NAME));
       writer.addCoreColumn(DwcTerm.taxonRank, "species");
       writer.addCoreColumn(DwcTerm.nomenclaturalCode, NOM_CODE);
-      writer.addCoreColumn(DcTerm.references, col(row, COL_LINK));
+      writer.addCoreColumn(DcTerm.references, link(row, COL_LINK));
       writer.addCoreColumn(DwcTerm.taxonRemarks, col(row, COL_COMPOSITION));
 
       boolean isType = toBool(col(row, COL_TYPE_SPECIES));
