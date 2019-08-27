@@ -39,10 +39,10 @@ import java.util.Set;
 
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
-  private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/7185/download";
-  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2017 v1.0.xlsx");
-  private static final String PUBDATE = "2018-03-12";
-  private static final String VERSION = "2017 v1";
+  private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/8266/download";
+  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2018b.v2.xlsx");
+  private static final String PUBDATE = "2019-05-31";
+  private static final String VERSION = "2019 v2";
   private static final URI PROPOSAL_URL = URI.create("https://data.ictvonline.org/proposals/");
 
   // metadata
@@ -53,16 +53,18 @@ public class ArchiveBuilder extends AbstractBuilder {
   // SPREADSHEET FORMAT
   private static final int SHEET_IDX = 2;
   private static final int SKIP_ROWS = 1;
-  // Order	Family	Subfamily	Genus	Species	Type Species?	Exemplar Accession Number	Exemplar Isolate	Genome Composition	Last Change	MSL of Last Change	Proposal	Taxon History URL
-  private static final int COL_ORDER = 0;
-  private static final int COL_FAMILY = 1;
-  private static final int COL_GENUS = 3;
-  private static final int COL_SCI_NAME = 4;
+  //	Realm	Subrealm	Kingdom	Subkingdom	Phylum	Subphylum	Class	Subclass	Order	Suborder	Family	Subfamily	Genus	Subgenus	Species	Type Species?	Genome Composition	Last Change	MSL of Last Change	Proposal for Last Change 	Taxon History URL
+  private static final int COL_PHYLUM    = 5;
+  private static final int COL_CLASS     = 7;
+  private static final int COL_ORDER     = 9;
+  private static final int COL_FAMILY    = 11;
+  private static final int COL_GENUS     = 13;
+  private static final int COL_SUBGENUS  = 14;
+  private static final int COL_SPECIES   = 15;
 
-  private static final int COL_TYPE_SPECIES = 5;
-  private static final int COL_COMPOSITION = 6;
-  private static final int COL_PROPOSAL = 9;
-  private static final int COL_LINK = 10;
+  private static final int COL_TYPE_SPECIES = 16;
+  private static final int COL_COMPOSITION = 17;
+  private static final int COL_LINK = 21;
 
   @Inject
   public ArchiveBuilder(CliConfiguration cfg) {
@@ -100,17 +102,20 @@ public class ArchiveBuilder extends AbstractBuilder {
     while (iter.hasNext()) {
       Row row = iter.next();
       if (row.getRowNum()+1 <= SKIP_ROWS) continue;
-
-      String name = col(row, COL_SCI_NAME);
+  
+      String name = col(row, COL_SPECIES);
       if (Strings.isNullOrEmpty(name)) continue;
 
       writer.newRecord(name);
       final String genus = col(row, COL_GENUS);
       writer.addCoreColumn(DwcTerm.kingdom, "Viruses");
-      writer.addCoreColumn(DwcTerm.order, col(row, COL_ORDER));
-      writer.addCoreColumn(DwcTerm.family, col(row, COL_FAMILY));
+      writer.addCoreColumn(DwcTerm.phylum,   col(row, COL_PHYLUM));
+      writer.addCoreColumn(DwcTerm.class_,   col(row, COL_CLASS));
+      writer.addCoreColumn(DwcTerm.order,    col(row, COL_ORDER));
+      writer.addCoreColumn(DwcTerm.family,   col(row, COL_FAMILY));
       writer.addCoreColumn(DwcTerm.genus, genus);
-      writer.addCoreColumn(DwcTerm.scientificName, col(row, COL_SCI_NAME));
+      writer.addCoreColumn(DwcTerm.subgenus, col(row, COL_SUBGENUS));
+      writer.addCoreColumn(DwcTerm.scientificName, col(row, COL_SPECIES));
       writer.addCoreColumn(DwcTerm.taxonRank, "species");
       writer.addCoreColumn(DwcTerm.nomenclaturalCode, NOM_CODE);
       writer.addCoreColumn(DcTerm.references, link(row, COL_LINK));
@@ -124,8 +129,10 @@ public class ArchiveBuilder extends AbstractBuilder {
         // also create a genus record with this type species
         writer.newRecord(genus);
         writer.addCoreColumn(DwcTerm.kingdom, "Viruses");
-        writer.addCoreColumn(DwcTerm.order, col(row, COL_ORDER));
-        writer.addCoreColumn(DwcTerm.family, col(row, COL_FAMILY));
+        writer.addCoreColumn(DwcTerm.phylum,   col(row, COL_PHYLUM));
+        writer.addCoreColumn(DwcTerm.class_,   col(row, COL_CLASS));
+        writer.addCoreColumn(DwcTerm.order,    col(row, COL_ORDER));
+        writer.addCoreColumn(DwcTerm.family,   col(row, COL_FAMILY));
         writer.addCoreColumn(DwcTerm.scientificName, genus);
         writer.addCoreColumn(DwcTerm.taxonRank, "genus");
         writer.addCoreColumn(DwcTerm.nomenclaturalCode, NOM_CODE);
@@ -155,7 +162,7 @@ public class ArchiveBuilder extends AbstractBuilder {
         "\n" +
         "Descriptions of virus satellites, viroids and the agents of spongiform encephalopathies (prions) of humans and several animal and fungal species are included.\n"
     );
-    dataset.setHomepage(uri("http://www.ictvonline.org/virusTaxInfo.asp"));
+    dataset.setHomepage(uri("https://talk.ictvonline.org/taxonomy/w/ictv-taxonomy"));
     dataset.setLogoUrl(uri("https://raw.githubusercontent.com/mdoering/checklist_builder/master/src/main/resources/ictv/ictv-logo.png"));
     setPubDate(PUBDATE);
     addExternalData(DOWNLOAD, null);
