@@ -19,7 +19,7 @@
   <description>Supported sources currently are Flickr, Clemens Birdlist and others. Each of them has a separate package with a main Builder class.</description>
 
   <properties>
-    <beanutils.version>1.8.3</beanutils.version>
+    <beanutils.version>1.9.2</beanutils.version>
     <compress.version>1.5</compress.version>
     <dwc-api.version>1.16</dwc-api.version>
     <dwca-io.version>1.32</dwca-io.version>
