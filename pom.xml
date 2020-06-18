@@ -20,7 +20,7 @@
 
   <properties>
     <beanutils.version>1.8.3</beanutils.version>
-    <compress.version>1.5</compress.version>
+    <compress.version>1.19</compress.version>
     <dwc-api.version>1.16</dwc-api.version>
     <dwca-io.version>1.32</dwca-io.version>
     <flickr4j.version>2.16</flickr4j.version>
