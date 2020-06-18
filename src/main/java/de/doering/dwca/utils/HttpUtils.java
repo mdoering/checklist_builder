@@ -9,10 +9,13 @@ import java.nio.charset.CodingErrorAction;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import javax.net.ssl.SSLContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.Consts;
@@ -146,6 +149,26 @@ public class HttpUtils {
         return MAPPER.readValue(response.getEntity().getContent(), objClazz);
       }
       LOG.warn("Error getting {}: {}", url, response.getStatusLine());
+      return null;
+    }
+  }
+
+  /**
+   * Reads a JSON response containing a "results" property containing an array.
+   */
+  public <T> List<T> readJsonResult(String url, Class<T> objClazz) throws IOException {
+    HttpUriRequest request = RequestBuilder.get()
+      .setUri(url)
+      .setHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+      .setHeader(HttpHeaders.ACCEPT, "application/json")
+      .build();
+    try (CloseableHttpResponse response = execute(request)) {
+      if (HttpUtils.success(response.getStatusLine())) {
+        JsonNode parent = new ObjectMapper().readTree(response.getEntity().getContent());
+        JavaType itemType = MAPPER.getTypeFactory().constructCollectionType(List.class, objClazz);
+        return MAPPER.readValue(parent.get("result").toString(), itemType);
+      }
+      LOG.error("Error getting {}: {}", url, response.getStatusLine());
       return null;
     }
   }
