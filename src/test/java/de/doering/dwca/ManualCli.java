@@ -15,7 +15,7 @@ public class ManualCli {
   public static void main(String[] args) {
     CliConfiguration cfg = new CliConfiguration();
     cfg.repository = new File("/tmp/checklist_builder/archives");
-    cfg.source = "dsmz";
+    cfg.source = "clements";
 
     Injector inj = Guice.createInjector(new CliModule(cfg));
 

@@ -47,6 +47,8 @@ import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,7 +59,7 @@ import java.util.regex.Pattern;
 public class ArchiveBuilder extends AbstractBuilder {
 
   private static final String VERSION_PAGE = "https://www.dsmz.de/services/online-tools/prokaryotic-nomenclature-up-to-date/downloads";
-  private static final String DOWNLOAD = "http://www.dsmz.de/fileadmin/Bereiche/ChiefEditors/BacterialNomenclature/DSMZ_bactnames.zip";
+  private static final String DOWNLOAD = "https://www.dsmz.de/fileadmin/Bereiche/ChiefEditors/BacterialNomenclature/DSMZ_bactnames.xlsx";
   private static final String API_HOST = "bacdive.dsmz.de";
   private static final String API_URL = "https://"+API_HOST+"/api/pnu/";
 
@@ -97,44 +99,18 @@ public class ArchiveBuilder extends AbstractBuilder {
     super(DatasetType.CHECKLIST, cfg, new UsernamePasswordCredentials("mdoering@gbif.org", "NzFhs9MAC44L"));
   }
 
-  protected void parseData() throws Exception {
-    // get excel sheet
-    LOG.info("Downloading latest data from {}", DOWNLOAD);
-
-    // download zipped xls
-    final File tmp = FileUtils.createTempDir();
-    tmp.deleteOnExit();
-    final File zip = File.createTempFile("dsmz", ".zip");
-    zip.deleteOnExit();
-    http.download(DOWNLOAD, zip);
-    // decompress
-    List<File> files = CompressionUtil.unzipFile(tmp, zip);
-    if (files.isEmpty()) {
-      throw new IllegalStateException("No files found in ZIP: " + zip.getAbsolutePath());
-    } else if (files.size() > 1) {
-      throw new IllegalStateException("More than one file found in ZIP: " + zip.getAbsolutePath());
-    }
-
-    File xls = files.get(0);
-    Pattern publishDate = Pattern.compile("(\\d\\d)(\\d\\d)");
-    Matcher m = publishDate.matcher(xls.getName());
-    if (m.find()) {
-      try {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.MONTH, Integer.parseInt(m.group(1)));
-        cal.set(Calendar.YEAR, 2000 + Integer.parseInt(m.group(2)));
-        dataset.setPubDate(cal.getTime());
-      } catch (NumberFormatException e) {
-        LOG.warn("Could not extract publishing date from filename {}", xls.getName());
-      }
-    }
-    parseData(xls);
+  private void parseReleaseDate() {
+    //TODO. grep from VERSION_PAGE
+    //Pattern publishDate = Pattern.compile("(\\d\\d)(\\d\\d)");
+    //Matcher m = publishDate.matcher(xls.getName());
+    //dataset.setPubDate(cal.getTime());
+    setCitation(CITATION + "August 2019");
   }
 
-  // parse XLS
-  private void parseData(File xls) throws IOException, InvalidFormatException {
-
-    Workbook wb = WorkbookFactory.create(xls);
+  protected void parseData() throws Exception {
+    LOG.info("Opening spreadsheet from {}", DOWNLOAD);
+    URL xls = new URL(DOWNLOAD);
+    Workbook wb = WorkbookFactory.create(xls.openStream());
     Sheet sheet = wb.getSheetAt(0);
     int rows = sheet.getPhysicalNumberOfRows();
     LOG.info("{} rows found in excel sheet", rows);
@@ -212,6 +188,8 @@ VP= by an original publication in the IJSB/IJSEM
         addGenusClassification(id, genus);
       }
     }
+
+    parseReleaseDate();
   }
 
   public static class DsmzGenus {
@@ -274,7 +252,6 @@ VP= by an original publication in the IJSB/IJSEM
     dataset.setDescription(DESCRIPTION);
     dataset.setHomepage(uri(HOMEPAGE));
     dataset.setLogoUrl(uri(LOGO));
-    setCitation(CITATION + "August 2019");
     addExternalData(DOWNLOAD, null);
     addContact(DSMZ_ORG, CONTACT_EMAIL, ContactType.ORIGINATOR);
     addContact(DSMZ_ORG, CONTACT_FIRST_NAME, CONTACT_LAST_NAME, CONTACT_EMAIL, ContactType.POINT_OF_CONTACT);

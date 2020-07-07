@@ -42,10 +42,10 @@ import java.util.regex.Pattern;
 public class ArchiveBuilder extends AbstractBuilder {
 
     private Pattern cleanFamily = Pattern.compile("^([^ ,(]+)");
-    private static final String DOWNLOAD = "http://www.birds.cornell.edu/clementschecklist/wp-content/uploads/{YEAR}/%02d/Clements-Checklist-v{YEAR}-{MONTH_NAME}-{YEAR}.xlsx";
+    private static final String DOWNLOAD = "https://www.birds.cornell.edu/clementschecklist/wp-content/uploads/{YEAR}/%02d/Clements-Checklist-v{YEAR}-{MONTH_NAME}-{YEAR}.xlsx";
     // metadata
     private static final String TITLE = "The Clements Checklist";
-    private static final URI HOMEPAGE = URI.create("http://www.birds.cornell.edu/clementschecklist");
+    private static final URI HOMEPAGE = URI.create("https://www.birds.cornell.edu/clementschecklist");
     private static final String CITATION = "Clements, J. F., T. S. Schulenberg, M. J. Iliff, D. Roberson, T. A. Fredericks, B. L. Sullivan, and C. L. Wood. {YEAR}. The eBird/Clements checklist of birds of the world: v{YEAR}. Downloaded from http://www.birds.cornell.edu/clementschecklist/download/";
     private static final URI LOGO = null;
     private static final String DESCRIPTION = "The Clements Checklist of Birds of the World, 6th Edition was published and released by Cornell University Press in June 2007. The book was produced from a nearly completed manuscript left by James Clements upon his death in 2005.\n" +
