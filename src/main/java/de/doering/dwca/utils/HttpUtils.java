@@ -23,6 +23,8 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.StatusLine;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -34,6 +36,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -49,7 +52,7 @@ import org.slf4j.LoggerFactory;
 public class HttpUtils {
   private static Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
   private final CloseableHttpClient client;
-  private final BasicAuthContextProvider authContextProvider;
+  private final UsernamePasswordCredentials credentials;
   private static final String LAST_MODIFIED = "Last-Modified";
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -61,9 +64,9 @@ public class HttpUtils {
     this(client, null);
   }
 
-  public HttpUtils(CloseableHttpClient client, BasicAuthContextProvider authContextProvider) {
+  public HttpUtils(CloseableHttpClient client, UsernamePasswordCredentials credentials) {
     this.client = client;
-    this.authContextProvider = authContextProvider ;
+    this.credentials = credentials;
   }
 
   public static CloseableHttpClient newMultithreadedClient(int timeout, int maxConnections, int maxPerRoute) {
@@ -102,7 +105,7 @@ public class HttpUtils {
     return builder.build();
   }
 
-  public String get(String url) throws IOException {
+  public String get(String url) throws IOException, AuthenticationException {
     try (CloseableHttpResponse response = execute(new HttpGet(url))) {
       if (HttpUtils.success(response.getStatusLine())) {
         return EntityUtils.toString(response.getEntity());
@@ -111,10 +114,10 @@ public class HttpUtils {
       return null;
     }
   }
-  public StatusLine download(String url, File downloadTo) throws IOException {
+  public StatusLine download(String url, File downloadTo) throws IOException, AuthenticationException {
     return download(new URL(url), downloadTo);
   }
-  public StatusLine download(URL url, File downloadTo) throws IOException {
+  public StatusLine download(URL url, File downloadTo) throws IOException, AuthenticationException {
     HttpGet get = new HttpGet(url.toString());
 
     // execute
@@ -134,11 +137,15 @@ public class HttpUtils {
     return status;
   }
 
-  private CloseableHttpResponse execute(HttpUriRequest req) throws IOException {
-    return authContextProvider == null ? client.execute(req) : client.execute(req, authContextProvider.newBasicAuthContext());
+  private CloseableHttpResponse execute(HttpUriRequest req) throws IOException, AuthenticationException {
+    if (credentials != null) {
+      req.addHeader(new BasicScheme().authenticate(credentials, req));
+      //req.setHeader(HttpHeaders.AUTHORIZATION, "application/json");
+    }
+    return client.execute(req);
   }
 
-  public <T> T readJson(String url, Class<T> objClazz) throws IOException {
+  public <T> T readJson(String url, Class<T> objClazz) throws IOException, AuthenticationException {
     HttpUriRequest request = RequestBuilder.get()
         .setUri(url)
         .setHeader(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -156,7 +163,7 @@ public class HttpUtils {
   /**
    * Reads a JSON response containing a "results" property containing an array.
    */
-  public <T> List<T> readJsonResult(String url, Class<T> objClazz) throws IOException {
+  public <T> List<T> readJsonResult(String url, Class<T> objClazz) throws IOException, AuthenticationException {
     HttpUriRequest request = RequestBuilder.get()
       .setUri(url)
       .setHeader(HttpHeaders.CONTENT_TYPE, "application/json")

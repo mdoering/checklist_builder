@@ -15,45 +15,62 @@
  */
 package de.doering.dwca.dsmz;
 
+import arq.update;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.hp.hpl.jena.sparql.function.library.date;
+import com.hp.hpl.jena.sparql.function.library.e;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
 import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.ParagraphBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.gbif.api.model.registry.Citation;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Rank;
+import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Prokaryotic Nomenclature Up-to-date (PNU) / LPSN
+ */
 public class ArchiveBuilder extends AbstractBuilder {
 
+  private static final String VERSION_PAGE = "https://www.dsmz.de/services/online-tools/prokaryotic-nomenclature-up-to-date/downloads";
   private static final String DOWNLOAD = "http://www.dsmz.de/fileadmin/Bereiche/ChiefEditors/BacterialNomenclature/DSMZ_bactnames.zip";
   private static final String API_HOST = "bacdive.dsmz.de";
-  private static final String API_URL = "http://"+API_HOST+"/api/pnu/";
+  private static final String API_URL = "https://"+API_HOST+"/api/pnu/";
 
   // metadata
-  private static final String TITLE = "Prokaryotic Nomenclature Up-to-date";
-  private static final String HOMEPAGE = "http://www.dsmz.de/bacterial-diversity/prokaryotic-nomenclature-up-to-date.html";
+  private static final String TITLE = "Prokaryotic Nomenclature Up-to-Date (PNU)";
+  private static final String HOMEPAGE = "https://www.dsmz.de/services/online-tools/prokaryotic-nomenclature-up-to-date";
   private static final String LOGO = "http://www.dsmz.de/fileadmin/templates/gfx/logo.gif";
-  private static final String DESCRIPTION = "\"Prokaryotic Nomenclature up-to-date\" is a compilation of all names of Bacteria and Archaea which have been validly published according to the Bacteriological Code since 1. Jan. 1980, and nomenclatural changes which have been validly published since. It will be updated with the publication of each new issue of the Int. J. Syst. Evol. Microbiol. (IJSEM). \"Prokaryotic Nomenclature up-to-date\" is published by the Leibniz-Institut DSMZ - Deutsche Sammlung von Mikroorganismen und Zellkulturen GmbH.";
+  private static final String CITATION = "Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH, Germany, Prokaryotic Nomenclature Up-to-date ";
+  private static final String DESCRIPTION = "Prokaryotic Nomenclature Up-to-Date (PNU) is a compilation of all names of Bacteria and Archaea " +
+      "which have been validly published according to the Bacteriological Code since 1. Jan. 1980, " +
+      "and nomenclatural changes which have been validly published since. " +
+      "It will be updated with the publication of each new issue of the International Journal of Systematic and Evolutionary Microbiology (IJSEM). " +
+      "In February 2020 PNU was merged with the List of Prokaryotic names with Standing in Nomenclature (LPSN).";
   private static final String DSMZ_ORG = "Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures";
   private static final String CONTACT_FIRST_NAME = "Dorothea";
   private static final String CONTACT_LAST_NAME = "Gleim";
@@ -77,10 +94,10 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   @Inject
   public ArchiveBuilder(CliConfiguration cfg) {
-    super(DatasetType.CHECKLIST, cfg, new BasicAuthContextProvider(new HttpHost(API_HOST), "mdoering@gbif.org", "NzFhs9MAC44L"));
+    super(DatasetType.CHECKLIST, cfg, new UsernamePasswordCredentials("mdoering@gbif.org", "NzFhs9MAC44L"));
   }
 
-  protected void parseData() throws IOException, InvalidFormatException {
+  protected void parseData() throws Exception {
     // get excel sheet
     LOG.info("Downloading latest data from {}", DOWNLOAD);
 
@@ -205,6 +222,13 @@ VP= by an original publication in the IJSB/IJSEM
     public String classis;
     public String phylum;
     public String regio;
+    public String reference;
+    public String type_species;
+    public List<DsmzReference> literature;
+  }
+  public static class DsmzReference {
+    public String pubmed;
+    public String reference;
   }
 
   private void addGenusClassification(String id, String name) {
@@ -217,9 +241,20 @@ VP= by an original publication in the IJSB/IJSEM
         writer.addCoreColumn(DwcTerm.class_, cleanTaxon(genus.classis));
         writer.addCoreColumn(DwcTerm.phylum, cleanTaxon(genus.phylum));
         writer.addCoreColumn(DwcTerm.kingdom, cleanTaxon(genus.regio));
+
+        writer.addCoreColumn(DwcTerm.namePublishedIn, StringUtils.trimToNull(genus.reference));
+        // literature
+        if (genus.literature != null) {
+          for (DsmzReference ref : genus.literature) {
+            if (StringUtils.isBlank(ref.reference)) continue;
+            Map<Term, String> rec = new HashMap<>();
+            rec.put(DcTerm.bibliographicCitation, StringUtils.trimToNull(ref.reference));
+            writer.addExtensionRecord(GbifTerm.Reference, rec);
+          }
+        }
       }
 
-    } catch (IOException e) {
+    } catch (IOException | AuthenticationException e) {
       LOG.error("Error retrieving genus {} with id {} from DSMZ API", name, id, e);
     }
   }
@@ -239,6 +274,7 @@ VP= by an original publication in the IJSB/IJSEM
     dataset.setDescription(DESCRIPTION);
     dataset.setHomepage(uri(HOMEPAGE));
     dataset.setLogoUrl(uri(LOGO));
+    setCitation(CITATION + "August 2019");
     addExternalData(DOWNLOAD, null);
     addContact(DSMZ_ORG, CONTACT_EMAIL, ContactType.ORIGINATOR);
     addContact(DSMZ_ORG, CONTACT_FIRST_NAME, CONTACT_LAST_NAME, CONTACT_EMAIL, ContactType.POINT_OF_CONTACT);
@@ -248,4 +284,9 @@ VP= by an original publication in the IJSB/IJSEM
     }
   }
 
+  //public static void main(String[] args) {
+  //  CliConfiguration cfg = new CliConfiguration();
+  //  ArchiveBuilder ab = new ArchiveBuilder(cfg);
+  //  ab.addGenusClassification("514991", "Acetobacter");
+  //}
 }

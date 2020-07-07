@@ -15,6 +15,7 @@
  */
 package de.doering.dwca.arkive;
 
+import org.apache.http.auth.AuthenticationException;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
@@ -103,8 +104,8 @@ public class ArchiveBuilder extends AbstractBuilder {
                 }
             }
 
-        } catch (IOException e) {
-            LOG.error("IOException for species {}", name, e);
+        } catch (IOException | AuthenticationException e) {
+            LOG.error("Exception for species {}", name, e);
         }
     }
 

@@ -30,8 +30,8 @@
     </encoder>
   </appender>
 
-  <logger name="de.doering.dwca" level="DEBUG"/>
   <!--
+  <logger name="de.doering.dwca" level="DEBUG"/>
   <logger name="org.apache.commons.httpclient" level="DEBUG"/>
   <logger name="org.apache.http.headers" level="DEBUG"/>
   <logger name="org.apache.http.wire" level="DEBUG"/>

@@ -77,7 +77,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     parseData(FILE);
   }
 
-  private File downloadXls() throws IOException, InvalidFormatException {
+  private File downloadXls() throws Exception {
     // get excel sheet
     LOG.info("Downloading latest data from {}", DOWNLOAD);
 

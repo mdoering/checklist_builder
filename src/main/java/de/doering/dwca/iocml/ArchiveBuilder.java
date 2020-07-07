@@ -23,6 +23,7 @@ import de.doering.dwca.CliConfiguration;
 import de.doering.dwca.ioc.IocXmlHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
@@ -75,7 +76,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     super(DatasetType.CHECKLIST, cfg);
   }
 
-  protected void parseData() throws IOException, InvalidFormatException {
+  protected void parseData() throws Exception {
     // get excel sheet
     parseData(downloadXls());
     //parseData(FILE);
@@ -106,7 +107,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
   }
 
-  private File downloadXls() throws IOException, InvalidFormatException {
+  private File downloadXls() throws IOException, AuthenticationException, InvalidFormatException {
     // get excel sheet
     LOG.info("Downloading latest data from {}", DOWNLOAD);
 

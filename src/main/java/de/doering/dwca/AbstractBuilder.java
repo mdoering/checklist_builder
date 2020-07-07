@@ -7,6 +7,7 @@ import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.poi.ss.usermodel.Row;
 import org.gbif.api.model.registry.Citation;
@@ -41,10 +42,10 @@ public abstract class AbstractBuilder implements Runnable {
     this(type, cfg, null);
   }
 
-  public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable BasicAuthContextProvider authContextProvider) {
+  public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable UsernamePasswordCredentials credentials) {
     this.cfg = cfg;
     client = HttpUtils.newMultithreadedClient(cfg.timeout * 1000, 50, 50);
-    http = new HttpUtils(client, authContextProvider);
+    http = new HttpUtils(client, credentials);
     this.type = type;
   }
 

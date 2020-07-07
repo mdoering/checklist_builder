@@ -25,15 +25,15 @@ public class BasicAuthContextProvider {
     authCache.put(host, basicAuth);
 
     credentialsProvider = new BasicCredentialsProvider();
-    AuthScope scope = new AuthScope(host);
-    credentialsProvider.setCredentials(scope, new UsernamePasswordCredentials("mdoering@gbif.org", "NzFhs9MAC44L"));
+    AuthScope scope = AuthScope.ANY; //new AuthScope(host);
+    credentialsProvider.setCredentials(scope, new UsernamePasswordCredentials(user, password));
   }
 
   public HttpClientContext newBasicAuthContext() {
     // Add AuthCache to the execution context
     HttpClientContext context = HttpClientContext.create();
     context.setCredentialsProvider(credentialsProvider);
-    context.setAuthCache(authCache);
+    //context.setAuthCache(authCache);
     return context;
   }
 }
