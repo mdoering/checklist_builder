@@ -3,7 +3,6 @@ package de.doering.dwca;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
-import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;

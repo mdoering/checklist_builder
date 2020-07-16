@@ -94,7 +94,7 @@ public class ArchiveBuilder extends AbstractBuilder {
       IocXmlHandler handler = new IocXmlHandler(null);
       // execute
       HttpGet get = new HttpGet(de.doering.dwca.ioc.ArchiveBuilder.XML_DOWNLOAD);
-      HttpResponse response = client.execute(get);
+      HttpResponse response = http.execute(get);
 
       Reader reader = new InputStreamReader(response.getEntity().getContent(), de.doering.dwca.ioc.ArchiveBuilder.ENCODING);
       parser.parse(new InputSource(reader), handler);

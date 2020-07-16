@@ -34,11 +34,11 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class ArchiveBuilder extends AbstractBuilder {
-  public static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/master_ioc-names_xml.xml";
+  public static final String XML_DOWNLOAD = "https://www.worldbirdnames.org/master_ioc-names_xml.xml";
   public static final String ENCODING = "UTF-8";
   // metadata
-  public static final String HOMEPAGE = "http://www.worldbirdnames.org";
-  public static final String LOGO = "http://www.worldbirdnames.org/img/hdr7.jpg";
+  public static final String HOMEPAGE = "https://www.worldbirdnames.org";
+  public static final String LOGO = "https://www.worldbirdnames.org/img/hdr7.jpg";
   public static final String CONTACT_ORG = "IOC World Bird List";
   private static final String CONTACT_EMAIL = "worldbirdnames@gmail.com";
   public static final String LICENSE = "Creative Commons Attribution 3.0 Unported License";
@@ -74,7 +74,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     try {
       // execute
       HttpGet get = new HttpGet(XML_DOWNLOAD);
-      HttpResponse response = client.execute(get);
+      HttpResponse response = http.execute(get);
 
       Reader reader = new InputStreamReader(response.getEntity().getContent(), ENCODING);
       parser.parse(new InputSource(reader), handler);

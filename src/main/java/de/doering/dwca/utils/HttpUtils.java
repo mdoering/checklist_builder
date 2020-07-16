@@ -28,6 +28,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.config.ConnectionConfig;
@@ -53,6 +54,7 @@ public class HttpUtils {
   private static Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
   private final CloseableHttpClient client;
   private final UsernamePasswordCredentials credentials;
+  private Header[] worldBirdNamesCookies;
   private static final String LAST_MODIFIED = "Last-Modified";
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -71,11 +73,7 @@ public class HttpUtils {
 
   public static CloseableHttpClient newMultithreadedClient(int timeout, int maxConnections, int maxPerRoute) {
     SSLContext sslcontext = SSLContexts.createSystemDefault();
-    SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-        sslcontext,
-        new String[] {"TLSv1.2", "TLSv1", "SSLv2Hello", "TLSv1.1", "SSLv3"},
-        null,
-        SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+    SSLConnectionSocketFactory socketFactory = SSLConnectionSocketFactory.getSocketFactory();
 
     Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
         .register("http", PlainConnectionSocketFactory.getSocketFactory())
@@ -100,7 +98,8 @@ public class HttpUtils {
 
     HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(cm)
-        .setDefaultRequestConfig(defaultRequestConfig);
+        .setDefaultRequestConfig(defaultRequestConfig)
+        .setUserAgent("GBIF Checklist Builder");
 
     return builder.build();
   }
@@ -119,6 +118,7 @@ public class HttpUtils {
   }
   public StatusLine download(URL url, File downloadTo) throws IOException, AuthenticationException {
     HttpGet get = new HttpGet(url.toString());
+    handleWordBirdNamesCookies(get);
 
     // execute
     CloseableHttpResponse response = execute(get);
@@ -137,12 +137,27 @@ public class HttpUtils {
     return status;
   }
 
-  private CloseableHttpResponse execute(HttpUriRequest req) throws IOException, AuthenticationException {
+  public CloseableHttpResponse execute(HttpUriRequest req) throws IOException, AuthenticationException {
     if (credentials != null) {
       req.addHeader(new BasicScheme().authenticate(credentials, req));
       //req.setHeader(HttpHeaders.AUTHORIZATION, "application/json");
     }
+    handleWordBirdNamesCookies(req);
+
     return client.execute(req);
+  }
+
+  private void handleWordBirdNamesCookies(HttpUriRequest req) throws IOException {
+    if (req.getURI().getHost().equals("www.worldbirdnames.org")) {
+      if (worldBirdNamesCookies == null) {
+        HttpHead getCookies = new HttpHead(req.getURI().toString());
+        CloseableHttpResponse cookieResponse = client.execute(getCookies);
+        worldBirdNamesCookies = cookieResponse.getHeaders("Set-Cookie");
+      }
+
+      req.addHeader("Cookie", worldBirdNamesCookies[0].getValue().split(";")[0] + "; " +
+        worldBirdNamesCookies[1].getValue().split(";")[0]);
+    }
   }
 
   public <T> T readJson(String url, Class<T> objClazz) throws IOException, AuthenticationException {
