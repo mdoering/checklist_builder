@@ -96,7 +96,7 @@ public abstract class AbstractBuilder implements Runnable {
   }
 
   private static String appendDotIfNotEmpty(String x) {
-    return x.isEmpty() ? x : StringUtils.strip(x, " .") + ". ";
+    return x == null || x.isEmpty() ? "" : StringUtils.strip(x, " .") + ". ";
   }
 
   private static String trimOrDefault(String x, String defaultValue) {

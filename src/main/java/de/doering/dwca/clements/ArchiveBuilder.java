@@ -15,8 +15,10 @@
  */
 package de.doering.dwca.clements;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
+import com.hp.hpl.jena.sparql.function.library.date;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -34,14 +36,22 @@ import org.gbif.dwc.terms.Term;
 import java.io.InputStream;
 import java.net.URI;
 import java.text.DateFormatSymbols;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalField;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
     private Pattern cleanFamily = Pattern.compile("^([^ ,(]+)");
-    private static final String DOWNLOAD = "https://www.birds.cornell.edu/clementschecklist/wp-content/uploads/{YEAR}/%02d/Clements-Checklist-v{YEAR}-{MONTH_NAME}-{YEAR}.xlsx";
+    private static final String DOWNLOAD = "https://www.birds.cornell.edu/clementschecklist/wp-content/uploads/{YEAR}/{MONTH}/Clements-Checklist-v{YEAR}-{MONTH_NAME}-{YEAR}.xlsx";
     // metadata
     private static final String TITLE = "The Clements Checklist";
     private static final URI HOMEPAGE = URI.create("https://www.birds.cornell.edu/clementschecklist");
@@ -78,31 +88,51 @@ public class ArchiveBuilder extends AbstractBuilder {
         super(DatasetType.CHECKLIST, cfg);
     }
 
+    private LocalDate findLastPublication(){
+        // recently these have been published annually in august only, but there have been different month before
+        // try and find a list for each month going backwards until we hit sth
+        LocalDate today = LocalDate.now();
+        for (int i=0; i<=24; i++) {
+            LocalDate date = today.minus(i, ChronoUnit.MONTHS);
+            if (exists(date)) {
+                return date;
+            }
+        }
+        throw new IllegalStateException("Unable to find any publication since 2 years");
+    }
+
+    private boolean exists(LocalDate date){
+        try {
+            String url = url(date);
+            LOG.info("Try release on {} at {}", date, url);
+            http.head(url);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @VisibleForTesting
+    protected static String url(LocalDate date){
+        DateFormatSymbols dfs = new DateFormatSymbols();
+        String[] months = dfs.getMonths();
+        return DOWNLOAD
+            .replace("{YEAR}", String.valueOf(date.get(ChronoField.YEAR)))
+            .replace("{MONTH}", String.format("%02d", date.get(ChronoField.MONTH_OF_YEAR)))
+            .replace("{MONTH_NAME}", months[date.get(ChronoField.MONTH_OF_YEAR) - 1]);
+    }
+
     /**
-     * We prefer the excel sheet over the CSV file as the CSV contains bad encodings for some characters of the
-     * distribution area names.
-     */
+         * We prefer the excel sheet over the CSV file as the CSV contains bad encodings for some characters of the
+         * distribution area names.
+         */
     @Override
     protected void parseData() throws Exception {
         // find latest clements list
-        // recently these have been published annually in august only, but there have been different month before
-        // in case we dont find a list for this month we get a 404 and exit
-        Date today = new Date();
-        int year = 1900 + today.getYear();
-        int month = 1 + today.getMonth();
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month-1);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        dataset.setPubDate(cal.getTime());
-
+        LocalDate date = findLastPublication();
+        dataset.setPubDate(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         // get latest CSV
-        DateFormatSymbols dfs = new DateFormatSymbols();
-        String[] months = dfs.getMonths();
-        String url = String.format(DOWNLOAD, month)
-                .replace("{YEAR}", String.valueOf(year))
-                .replace("{MONTH_NAME}", months[month - 1]);
-
+        String url = url(date);
         // download excel
         LOG.info("Downloading latest data from {}", url);
         InputStream in = http.getStream(url);

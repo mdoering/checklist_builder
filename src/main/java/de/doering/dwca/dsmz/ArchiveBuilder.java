@@ -222,7 +222,7 @@ VP= by an original publication in the IJSB/IJSEM
       }
 
     } catch (Exception e) {
-      LOG.error("Error retrieving genus {} with id {} from DSMZ API", name, id, e);
+      LOG.error("Error retrieving genus {} with id {} from DSMZ API: {}", name, id, e.getMessage());
     }
   }
 
