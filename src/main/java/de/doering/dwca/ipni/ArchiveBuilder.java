@@ -15,6 +15,10 @@
  */
 package de.doering.dwca.ipni;
 
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import de.doering.dwca.AbstractBuilder;
+import de.doering.dwca.CliConfiguration;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.registry.metadata.EMLWriter;
@@ -29,11 +33,6 @@ import java.net.URI;
 import java.util.Date;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -69,7 +68,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
     @Override
     protected void parseData() throws Exception {
-        IPNICrawler crawler = new IPNICrawler(client, dwcaDir, testFamilies);
+        IPNICrawler crawler = new IPNICrawler(http, dwcaDir, testFamilies);
         crawler.run();
     }
 

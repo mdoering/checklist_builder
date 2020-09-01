@@ -27,12 +27,9 @@
     <gbif-api.version>0.39</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
     <gbif-common.version>0.36</gbif-common.version>
-    <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-parsers.version>0.28</gbif-parsers.version>
     <guava.version>18.0</guava.version>
     <guice.version>4.1.0</guice.version>
-    <httpclient.version>4.5.2</httpclient.version>
-    <httpcore.version>4.3.3</httpcore.version>
     <io.version>2.5</io.version>
     <jackson.version>1.9.13</jackson.version>
     <jcommander.version>1.48</jcommander.version>
@@ -56,8 +53,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.5.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>11</source>
+          <target>11</target>
         </configuration>
       </plugin>
 
@@ -187,18 +184,6 @@
       <version>1.5</version>
       <!-- This is the proper declaration. For details see the homepage of the project. -->
       <optional>true</optional>
-    </dependency>
-    <!--
-      <dependency>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpcore</artifactId>
-          <version>${httpcore.version}</version>
-      </dependency>
-      -->
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
     </dependency>
 
     <!-- Guice -->

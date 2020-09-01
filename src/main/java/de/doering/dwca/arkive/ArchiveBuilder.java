@@ -15,7 +15,13 @@
  */
 package de.doering.dwca.arkive;
 
-import org.apache.http.auth.AuthenticationException;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import de.doering.dwca.AbstractBuilder;
+import de.doering.dwca.CliConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
@@ -25,24 +31,12 @@ import org.gbif.dwc.terms.Term;
 
 import java.io.IOException;
 import java.net.URI;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -104,7 +98,7 @@ public class ArchiveBuilder extends AbstractBuilder {
                 }
             }
 
-        } catch (IOException | AuthenticationException e) {
+        } catch (Exception e) {
             LOG.error("Exception for species {}", name, e);
         }
     }

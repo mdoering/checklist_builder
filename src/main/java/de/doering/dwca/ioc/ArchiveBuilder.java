@@ -15,23 +15,21 @@
  */
 package de.doering.dwca.ioc;
 
-import org.gbif.api.vocabulary.ContactType;
-import org.gbif.api.vocabulary.DatasetType;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.gbif.api.vocabulary.ContactType;
+import org.gbif.api.vocabulary.DatasetType;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 public class ArchiveBuilder extends AbstractBuilder {
   public static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/master_ioc-names_xml.xml";
@@ -73,10 +71,8 @@ public class ArchiveBuilder extends AbstractBuilder {
 
     try {
       // execute
-      HttpGet get = new HttpGet(XML_DOWNLOAD);
-      HttpResponse response = client.execute(get);
-
-      Reader reader = new InputStreamReader(response.getEntity().getContent(), ENCODING);
+      InputStream in = http.getStream(XML_DOWNLOAD);
+      Reader reader = new InputStreamReader(in, ENCODING);
       parser.parse(new InputSource(reader), handler);
 
       setPubDate(handler.getYear());

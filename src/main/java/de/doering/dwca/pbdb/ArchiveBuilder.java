@@ -20,8 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.terms.DcTerm;
@@ -31,6 +29,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.utils.file.tabular.TabularDataFileReader;
 import org.gbif.utils.file.tabular.TabularFiles;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.*;
@@ -83,95 +82,91 @@ public class ArchiveBuilder extends AbstractBuilder {
     protected void parseData() throws Exception {
         // get latest CSV
         LOG.info("Downloading latest data from {}", DOWNLOAD);
-        HttpGet get = new HttpGet(DOWNLOAD);
+        InputStream in = http.getStream(DOWNLOAD);
+        TabularDataFileReader<List<String>> reader = TabularFiles.newTabularFileReader(
+            new InputStreamReader(in, "UTF-8"),
+            '\t', "\n", '"', true
+        );
 
-        // download
-        CloseableHttpResponse response = client.execute(get);
-        try {
-            TabularDataFileReader<List<String>> reader = TabularFiles.newTabularFileReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"), '\t', "\n", '"', true);
-
-            // parse rows
-            List<String> row;
-            while ((row = reader.read()) != null) {
-                if (row.size() < COL_MIN) {
-                    LOG.warn("Row {} with too little columns", reader.getLastRecordLineNumber());
-                    continue;
-                }
-
-                Integer id = null;
-                try {
-                    id = Integer.parseInt(row.get(COL_ID));
-                } catch (NumberFormatException e) {
-                    LOG.warn("Suspicous row with non integer id, ignore line: {}", reader.getLastRecordLineNumber());
-                    continue;
-                }
-                writer.newRecord(id.toString());
-                writer.addCoreColumn(DwcTerm.acceptedNameUsageID, avoidZero(row.get(COL_ACCEPTED_ID)));
-                writer.addCoreColumn(DwcTerm.parentNameUsageID, avoidZero(row.get(COL_PARENT_ID)));
-                writer.addCoreColumn(DwcTerm.originalNameUsageID, avoidZero(row.get(COL_ORIGINAL_ID)));
-                writer.addCoreColumn(DwcTerm.taxonRank, row.get(COL_RANK));
-                writer.addCoreColumn(DwcTerm.scientificName, row.get(COL_NAME));
-                writer.addCoreColumn(DwcTerm.scientificNameAuthorship, row.get(COL_AUTHOR));
-                writer.addCoreColumn(DwcTerm.nameAccordingTo, row.get(COL_ACC_TO));
-
-                Map<Term, String> data = new HashMap<Term, String>();
-                if (!Strings.isNullOrEmpty(row.get(COL_EN_NAME))) {
-                    data.put(DwcTerm.vernacularName, row.get(COL_EN_NAME));
-                    data.put(DcTerm.language, "en");
-                    writer.addExtensionRecord(GbifTerm.VernacularName, data);
-                }
-
-                // invert extinct
-                data = new HashMap<Term, String>();
-                if (!Strings.isNullOrEmpty(row.get(COL_EXTANT))) {
-                    Boolean isExtinct = null;
-                    switch (row.get(COL_EXTANT).toLowerCase()) {
-                        case "extinct":
-                            isExtinct = true;
-                            break;
-                        case "extant":
-                            isExtinct = false;
-                            break;
-                    }
-                    data.put(GbifTerm.isExtinct, isExtinct == null ? null : isExtinct.toString());
-                }
-
-                // marine, freshwater, terrestrial
-                String env = Strings.nullToEmpty(row.get(COL_ENVIRONMENT)).toLowerCase();
-                if (env.contains("marine") || env.contains("oceanic")) {
-                    data.put(GbifTerm.isMarine, TRUE);
-                }
-                if (env.contains("freshwater")) {
-                    data.put(GbifTerm.isFreshwater, TRUE);
-                }
-                if (env.contains("terrestrial")) {
-                    data.put(GbifTerm.isTerrestrial, TRUE);
-                }
-
-                // habitat
-                data.put(DwcTerm.habitat, row.get(COL_HABITAT));
-
-                // concat living period
-                LinkedList<Double> appearance = Lists.newLinkedList();
-                for (int col : APPEARANCE_COLS) {
-                    String val = Strings.emptyToNull(row.get(col));
-                    if (val != null) {
-                        try {
-                            appearance.add(Double.valueOf(val));
-                        } catch (NumberFormatException e) {
-                            LOG.warn("Failed to convert living time {} to double", val);
-                        }
-                    }
-                }
-                if (appearance.size() > 1) {
-                    Collections.sort(appearance);
-                    String livingPeriod = String.format("%s to %s Ma", appearance.getLast(), appearance.getFirst());
-                    data.put(GbifTerm.livingPeriod, livingPeriod);
-                }
-                writer.addExtensionRecord(GbifTerm.SpeciesProfile, data);
+        // parse rows
+        List<String> row;
+        while ((row = reader.read()) != null) {
+            if (row.size() < COL_MIN) {
+                LOG.warn("Row {} with too little columns", reader.getLastRecordLineNumber());
+                continue;
             }
-        } finally {
-            response.close();
+
+            Integer id = null;
+            try {
+                id = Integer.parseInt(row.get(COL_ID));
+            } catch (NumberFormatException e) {
+                LOG.warn("Suspicous row with non integer id, ignore line: {}", reader.getLastRecordLineNumber());
+                continue;
+            }
+            writer.newRecord(id.toString());
+            writer.addCoreColumn(DwcTerm.acceptedNameUsageID, avoidZero(row.get(COL_ACCEPTED_ID)));
+            writer.addCoreColumn(DwcTerm.parentNameUsageID, avoidZero(row.get(COL_PARENT_ID)));
+            writer.addCoreColumn(DwcTerm.originalNameUsageID, avoidZero(row.get(COL_ORIGINAL_ID)));
+            writer.addCoreColumn(DwcTerm.taxonRank, row.get(COL_RANK));
+            writer.addCoreColumn(DwcTerm.scientificName, row.get(COL_NAME));
+            writer.addCoreColumn(DwcTerm.scientificNameAuthorship, row.get(COL_AUTHOR));
+            writer.addCoreColumn(DwcTerm.nameAccordingTo, row.get(COL_ACC_TO));
+
+            Map<Term, String> data = new HashMap<Term, String>();
+            if (!Strings.isNullOrEmpty(row.get(COL_EN_NAME))) {
+                data.put(DwcTerm.vernacularName, row.get(COL_EN_NAME));
+                data.put(DcTerm.language, "en");
+                writer.addExtensionRecord(GbifTerm.VernacularName, data);
+            }
+
+            // invert extinct
+            data = new HashMap<Term, String>();
+            if (!Strings.isNullOrEmpty(row.get(COL_EXTANT))) {
+                Boolean isExtinct = null;
+                switch (row.get(COL_EXTANT).toLowerCase()) {
+                    case "extinct":
+                        isExtinct = true;
+                        break;
+                    case "extant":
+                        isExtinct = false;
+                        break;
+                }
+                data.put(GbifTerm.isExtinct, isExtinct == null ? null : isExtinct.toString());
+            }
+
+            // marine, freshwater, terrestrial
+            String env = Strings.nullToEmpty(row.get(COL_ENVIRONMENT)).toLowerCase();
+            if (env.contains("marine") || env.contains("oceanic")) {
+                data.put(GbifTerm.isMarine, TRUE);
+            }
+            if (env.contains("freshwater")) {
+                data.put(GbifTerm.isFreshwater, TRUE);
+            }
+            if (env.contains("terrestrial")) {
+                data.put(GbifTerm.isTerrestrial, TRUE);
+            }
+
+            // habitat
+            data.put(DwcTerm.habitat, row.get(COL_HABITAT));
+
+            // concat living period
+            LinkedList<Double> appearance = Lists.newLinkedList();
+            for (int col : APPEARANCE_COLS) {
+                String val = Strings.emptyToNull(row.get(col));
+                if (val != null) {
+                    try {
+                        appearance.add(Double.valueOf(val));
+                    } catch (NumberFormatException e) {
+                        LOG.warn("Failed to convert living time {} to double", val);
+                    }
+                }
+            }
+            if (appearance.size() > 1) {
+                Collections.sort(appearance);
+                String livingPeriod = String.format("%s to %s Ma", appearance.getLast(), appearance.getFirst());
+                data.put(GbifTerm.livingPeriod, livingPeriod);
+            }
+            writer.addExtensionRecord(GbifTerm.SpeciesProfile, data);
         }
     }
 

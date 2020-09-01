@@ -22,13 +22,15 @@ import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,8 +41,9 @@ import java.util.Set;
 
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
-  private static final String DOWNLOAD = "https://talk.ictvonline.org/files/master-species-lists/m/msl/8266/download";
-  private static final File FILE = new File("/Users/markus/Downloads/ICTV Master Species List 2018b.v2.xlsx");
+  // https://talk.ictvonline.org/files/master-species-lists/
+  // 8266
+  private static final String DOWNLOAD = "http://talk.ictvonline.org/files/master-species-lists/m/msl/9601/download";
   private static final String PUBDATE = "2019-05-31";
   private static final String VERSION = "2019 v2";
   private static final URI PROPOSAL_URL = URI.create("https://data.ictvonline.org/proposals/");
@@ -71,10 +74,10 @@ public class ArchiveBuilder extends AbstractBuilder {
     super(DatasetType.CHECKLIST, cfg);
   }
 
-  protected void parseData() throws IOException, InvalidFormatException {
+  protected void parseData() throws Exception {
     // get excel sheet
-    //parseData(downloadXls());
-    parseData(FILE);
+    parseData(downloadXls());
+    //parseData(new File("/Users/markus/Downloads/ICTV Master Species List 2018b.v2.xlsx"));
   }
 
   private File downloadXls() throws Exception {
@@ -82,10 +85,9 @@ public class ArchiveBuilder extends AbstractBuilder {
     LOG.info("Downloading latest data from {}", DOWNLOAD);
 
     // download xls
-    final File xls = FileUtils.createTempDir();
+    final File xls = File.createTempFile("ictv", "xls");
     xls.deleteOnExit();
     http.download(DOWNLOAD, xls);
-
     return xls;
   }
 

@@ -1,14 +1,13 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.Term;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public class FlickrImage {
   public static final Map<String, Term> TAG_MAPPING = Maps.newHashMap();

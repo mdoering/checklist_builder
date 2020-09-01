@@ -3,12 +3,9 @@ package de.doering.dwca;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
-import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.poi.ss.usermodel.Row;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Contact;
@@ -27,25 +24,28 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.util.Date;
 
 public abstract class AbstractBuilder implements Runnable {
   protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
   protected final Dataset dataset = new Dataset();
   protected final CliConfiguration cfg;
-  protected final CloseableHttpClient client;
+  protected final HttpClient client;
   protected final HttpUtils http;
   protected DwcaWriter writer;
   private final DatasetType type;
 
   public AbstractBuilder(DatasetType type, CliConfiguration cfg) {
-    this(type, cfg, null);
+    this(type, cfg, null, null);
   }
 
-  public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable UsernamePasswordCredentials credentials) {
+  public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable String username, @Nullable String password) {
     this.cfg = cfg;
-    client = HttpUtils.newMultithreadedClient(cfg.timeout * 1000, 50, 50);
-    http = new HttpUtils(client, credentials);
+    client = HttpClient.newBuilder()
+        .followRedirects(HttpClient.Redirect.ALWAYS)
+        .build();
+    http = new HttpUtils(client, username, password);
     this.type = type;
   }
 

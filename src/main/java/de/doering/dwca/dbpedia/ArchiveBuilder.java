@@ -15,19 +15,13 @@
  */
 package de.doering.dwca.dbpedia;
 
+import com.google.inject.Inject;
+import com.hp.hpl.jena.query.*;
+import de.doering.dwca.AbstractBuilder;
+import de.doering.dwca.CliConfiguration;
 import org.gbif.api.vocabulary.DatasetType;
 
 import java.io.IOException;
-
-import com.google.inject.Inject;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
 
 public class ArchiveBuilder extends AbstractBuilder {
 

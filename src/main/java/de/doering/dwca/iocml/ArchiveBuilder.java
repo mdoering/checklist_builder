@@ -22,9 +22,6 @@ import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
 import de.doering.dwca.ioc.IocXmlHandler;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -42,12 +39,11 @@ import org.xml.sax.InputSource;
 import javax.annotation.Nullable;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.Iterator;
 import java.util.Map;
+
+import static de.doering.dwca.ioc.ArchiveBuilder.XML_DOWNLOAD;
 
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
@@ -84,7 +80,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   private void parseXmlMetadata() {
     // get xml data
-    LOG.info("Parse metadata from latest IOC world bird list at {}", de.doering.dwca.ioc.ArchiveBuilder.XML_DOWNLOAD);
+    LOG.info("Parse metadata from latest IOC world bird list at {}", XML_DOWNLOAD);
 
     // parse page
     SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -93,10 +89,8 @@ public class ArchiveBuilder extends AbstractBuilder {
       final SAXParser parser = factory.newSAXParser();
       IocXmlHandler handler = new IocXmlHandler(null);
       // execute
-      HttpGet get = new HttpGet(de.doering.dwca.ioc.ArchiveBuilder.XML_DOWNLOAD);
-      HttpResponse response = client.execute(get);
-
-      Reader reader = new InputStreamReader(response.getEntity().getContent(), de.doering.dwca.ioc.ArchiveBuilder.ENCODING);
+      InputStream in = http.getStream(XML_DOWNLOAD);
+      Reader reader = new InputStreamReader(in, de.doering.dwca.ioc.ArchiveBuilder.ENCODING);
       parser.parse(new InputSource(reader), handler);
 
       setPubDate(handler.getYear());
@@ -107,7 +101,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
   }
 
-  private File downloadXls() throws IOException, AuthenticationException, InvalidFormatException {
+  private File downloadXls() throws Exception {
     // get excel sheet
     LOG.info("Downloading latest data from {}", DOWNLOAD);
 

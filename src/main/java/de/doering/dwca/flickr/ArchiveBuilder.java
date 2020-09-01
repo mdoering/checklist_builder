@@ -1,13 +1,5 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.api.vocabulary.DatasetType;
-
-import java.io.IOException;
-import java.time.Year;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import com.flickr4java.flickr.Flickr;
 import com.flickr4java.flickr.FlickrException;
 import com.flickr4java.flickr.REST;
@@ -18,6 +10,13 @@ import com.flickr4java.flickr.machinetags.NamespacesList;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
+import org.gbif.api.vocabulary.DatasetType;
+
+import java.io.IOException;
+import java.time.Year;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ArchiveBuilder extends AbstractBuilder {
   private final int MIN_YEAR = 1980;

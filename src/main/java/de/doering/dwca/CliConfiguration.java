@@ -1,14 +1,14 @@
 package de.doering.dwca;
 
-import java.io.File;
-import java.util.List;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.util.List;
 
 /**
  *

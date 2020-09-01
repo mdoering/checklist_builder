@@ -1,5 +1,6 @@
 package de.doering.dwca.ipni;
 
+import com.google.common.base.Strings;
 import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.dwc.terms.DcTerm;
@@ -10,22 +11,15 @@ import org.gbif.dwca.io.DwcaWriter;
 import org.gbif.nameparser.NameParser;
 import org.gbif.nameparser.UnparsableException;
 import org.gbif.utils.file.CompressionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Manual util to parseSynonyms names in a postgres db with the gbif parser and store the canonical and authors.

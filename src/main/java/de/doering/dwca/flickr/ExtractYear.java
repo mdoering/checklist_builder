@@ -1,18 +1,5 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.Term;
-
-import java.time.Year;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.flickr4java.flickr.Flickr;
 import com.flickr4java.flickr.FlickrException;
 import com.flickr4java.flickr.REST;
@@ -29,8 +16,15 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import de.doering.dwca.CliConfiguration;
 import de.doering.dwca.utils.DateUtils;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.Term;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Year;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ExtractYear implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(ExtractYear.class);

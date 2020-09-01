@@ -20,8 +20,6 @@ import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -33,6 +31,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.text.DateFormatSymbols;
 import java.util.*;
@@ -103,79 +102,76 @@ public class ArchiveBuilder extends AbstractBuilder {
         String url = String.format(DOWNLOAD, month)
                 .replace("{YEAR}", String.valueOf(year))
                 .replace("{MONTH_NAME}", months[month - 1]);
-        LOG.info("Downloading latest data from {}", url);
-        HttpGet get = new HttpGet(url);
 
         // download excel
-        try (CloseableHttpResponse response = client.execute(get)){
-            if (response.getStatusLine().getStatusCode() != 200) {
-                LOG.error("No Clements XLS available from {}: {}", url, response.getStatusLine());
-                throw new IllegalStateException("Unable to download Clements XLS: " + response.getStatusLine().toString());
+        LOG.info("Downloading latest data from {}", url);
+        InputStream in = http.getStream(url);
+        if (in == null) {
+            throw new IllegalStateException("Unable to download Clements XLS from " + url);
+        }
+        Workbook wb = WorkbookFactory.create(in);
+        Sheet taxa = wb.getSheetAt(0);
+        LOG.info("{} taxa found in excel sheet", taxa.getPhysicalNumberOfRows());
+
+        // parse rows
+        Iterator<Row> iter = taxa.rowIterator();
+        while (iter.hasNext()) {
+            Row row = iter.next();
+            String id = col(row, COL_ID);
+            if (StringUtils.isBlank(id)) {
+                LOG.warn("Suspicous row with empty id, ignore line {}", row.getRowNum());
+                continue;
             }
-            Workbook wb = WorkbookFactory.create(response.getEntity().getContent());
-            Sheet taxa = wb.getSheetAt(0);
-            LOG.info("{} taxa found in excel sheet", taxa.getPhysicalNumberOfRows());
-            
-            // parse rows
-            Iterator<Row> iter = taxa.rowIterator();
-            while (iter.hasNext()) {
-                Row row = iter.next();
-                String id = col(row, COL_ID);
-                if (StringUtils.isBlank(id)) {
-                    LOG.warn("Suspicous row with empty id, ignore line {}", row.getRowNum());
-                    continue;
+            writer.newRecord(id);
+            writer.addCoreColumn(DwcTerm.scientificName, col(row, COL_NAME));
+            writer.addCoreColumn(DwcTerm.taxonRank, col(row, COL_RANK));
+            writer.addCoreColumn(DwcTerm.kingdom, "Animalia");
+            writer.addCoreColumn(DwcTerm.class_, "Aves");
+            writer.addCoreColumn(DwcTerm.order, col(row, COL_ORDER));
+            if (!Strings.isNullOrEmpty(col(row, COL_FAMILY))) {
+                Matcher m = cleanFamily.matcher(col(row, COL_FAMILY));
+                if (m.find()) {
+                    writer.addCoreColumn(DwcTerm.family, m.group());
                 }
-                writer.newRecord(id);
-                writer.addCoreColumn(DwcTerm.scientificName, col(row, COL_NAME));
-                writer.addCoreColumn(DwcTerm.taxonRank, col(row, COL_RANK));
-                writer.addCoreColumn(DwcTerm.kingdom, "Animalia");
-                writer.addCoreColumn(DwcTerm.class_, "Aves");
-                writer.addCoreColumn(DwcTerm.order, col(row, COL_ORDER));
-                if (!Strings.isNullOrEmpty(col(row, COL_FAMILY))) {
-                    Matcher m = cleanFamily.matcher(col(row, COL_FAMILY));
-                    if (m.find()) {
-                        writer.addCoreColumn(DwcTerm.family, m.group());
-                    }
-                }
-                writer.addCoreColumn(DwcTerm.taxonRemarks, col(row, COL_REMARKS));
-
-                Map<Term, String> data = new HashMap<Term, String>();
-                data.put(DwcTerm.vernacularName, col(row, COL_EN_NAME));
-                data.put(DcTerm.language, "en");
-                writer.addExtensionRecord(GbifTerm.VernacularName, data);
-
-                data = new HashMap<Term, String>();
-                data.put(DcTerm.description, col(row, COL_RANGE));
-                data.put(DcTerm.type, "Distribution");
-                writer.addExtensionRecord(GbifTerm.Description, data);
-
-                // extinct
-                data = new HashMap<Term, String>();
-                data.put(GbifTerm.isExtinct, "1".equalsIgnoreCase(Strings.nullToEmpty(col(row, COL_EXTINCT))) ? "true" : "false");
-                if (!Strings.isNullOrEmpty(col(row, COL_EXTINCT_YEAR))) {
-                    data.put(GbifTerm.livingPeriod, "Recent until " + col(row, COL_EXTINCT_YEAR));
-                }
-                writer.addExtensionRecord(GbifTerm.SpeciesProfile, data);
             }
+            writer.addCoreColumn(DwcTerm.taxonRemarks, col(row, COL_REMARKS));
 
-            // parse references and add to EML bibliography
-            Sheet refs = wb.getSheetAt(1);
-            LOG.info("{} references found in excel sheet", refs.getPhysicalNumberOfRows());
-            iter = refs.rowIterator();
-            while (iter.hasNext()) {
-                Row row = iter.next();
-                String abbrev = col(row, COL_REF_ABBREV);
-                if (StringUtils.isBlank(abbrev)) {
-                    LOG.warn("Suspicous reference with empty citation abbreviation, ignore line {}", row.getRowNum());
-                    continue;
-                }
-                String refCitation = buildCitation(col(row, COL_REF_AUTHOR), col(row, COL_REF_YEAR), col(row, COL_REF_TITLE), col(row, COL_REF_JOURNAL));
-                if (!StringUtils.isBlank(refCitation)) {
-                    Citation c = new Citation();
-                    c.setText(refCitation);
-                    c.setIdentifier(link(row, COL_REF_TITLE));
-                    dataset.getBibliographicCitations().add(c);
-                }
+            Map<Term, String> data = new HashMap<Term, String>();
+            data.put(DwcTerm.vernacularName, col(row, COL_EN_NAME));
+            data.put(DcTerm.language, "en");
+            writer.addExtensionRecord(GbifTerm.VernacularName, data);
+
+            data = new HashMap<Term, String>();
+            data.put(DcTerm.description, col(row, COL_RANGE));
+            data.put(DcTerm.type, "Distribution");
+            writer.addExtensionRecord(GbifTerm.Description, data);
+
+            // extinct
+            data = new HashMap<Term, String>();
+            data.put(GbifTerm.isExtinct, "1".equalsIgnoreCase(Strings.nullToEmpty(col(row, COL_EXTINCT))) ? "true" : "false");
+            if (!Strings.isNullOrEmpty(col(row, COL_EXTINCT_YEAR))) {
+                data.put(GbifTerm.livingPeriod, "Recent until " + col(row, COL_EXTINCT_YEAR));
+            }
+            writer.addExtensionRecord(GbifTerm.SpeciesProfile, data);
+        }
+
+        // parse references and add to EML bibliography
+        Sheet refs = wb.getSheetAt(1);
+        LOG.info("{} references found in excel sheet", refs.getPhysicalNumberOfRows());
+        iter = refs.rowIterator();
+        while (iter.hasNext()) {
+            Row row = iter.next();
+            String abbrev = col(row, COL_REF_ABBREV);
+            if (StringUtils.isBlank(abbrev)) {
+                LOG.warn("Suspicous reference with empty citation abbreviation, ignore line {}", row.getRowNum());
+                continue;
+            }
+            String refCitation = buildCitation(col(row, COL_REF_AUTHOR), col(row, COL_REF_YEAR), col(row, COL_REF_TITLE), col(row, COL_REF_JOURNAL));
+            if (!StringUtils.isBlank(refCitation)) {
+                Citation c = new Citation();
+                c.setText(refCitation);
+                c.setIdentifier(link(row, COL_REF_TITLE));
+                dataset.getBibliographicCitations().add(c);
             }
         }
     }

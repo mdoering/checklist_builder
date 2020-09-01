@@ -15,26 +15,17 @@
  */
 package de.doering.dwca.dsmz;
 
-import arq.update;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.hp.hpl.jena.sparql.function.library.date;
-import com.hp.hpl.jena.sparql.function.library.e;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
-import de.doering.dwca.utils.BasicAuthContextProvider;
 import de.doering.dwca.utils.ParagraphBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.gbif.api.model.registry.Citation;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Rank;
@@ -42,14 +33,12 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.utils.file.CompressionUtil;
-import org.gbif.utils.file.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,7 +85,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   @Inject
   public ArchiveBuilder(CliConfiguration cfg) {
-    super(DatasetType.CHECKLIST, cfg, new UsernamePasswordCredentials("mdoering@gbif.org", "NzFhs9MAC44L"));
+    super(DatasetType.CHECKLIST, cfg, "mdoering@gbif.org", "NzFhs9MAC44L");
   }
 
   private void parseReleaseDate() {
@@ -232,7 +221,7 @@ VP= by an original publication in the IJSB/IJSEM
         }
       }
 
-    } catch (IOException | AuthenticationException e) {
+    } catch (Exception e) {
       LOG.error("Error retrieving genus {} with id {} from DSMZ API", name, id, e);
     }
   }

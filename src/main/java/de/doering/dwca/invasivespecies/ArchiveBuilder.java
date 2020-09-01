@@ -15,20 +15,16 @@
  */
 package de.doering.dwca.invasivespecies;
 
-import org.gbif.api.vocabulary.DatasetType;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.ccil.cowan.tagsoup.Parser;
+import org.gbif.api.vocabulary.DatasetType;
 import org.xml.sax.InputSource;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -41,22 +37,19 @@ public class ArchiveBuilder extends AbstractBuilder {
         super(DatasetType.CHECKLIST, cfg);
     }
 
-    protected void parseData() throws IOException {
+    protected void parseData() throws Exception {
         // get webapge
         LOG.info("Downloading latest invasives webpage from {}", WEBAPGE);
 
-        HttpGet get = new HttpGet(WEBAPGE);
-
         // execute
-        HttpResponse response = client.execute(get);
-        HttpEntity entity = response.getEntity();
+        InputStream in = http.getStream(WEBAPGE);
         // parse page
         final Parser parser = new Parser();
         InvasivespeciesHandler handler = new InvasivespeciesHandler(writer, LINK_BASE);
         try {
             parser.setContentHandler(handler);
             parser.setFeature(Parser.namespacesFeature, false);
-            Reader reader = new InputStreamReader(entity.getContent(), ENCODING);
+            Reader reader = new InputStreamReader(in, ENCODING);
             parser.parse(new InputSource(reader));
         } catch (Exception e) {
             LOG.error("Cannot process page", e);

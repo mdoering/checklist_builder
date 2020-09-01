@@ -1,19 +1,5 @@
 package de.doering.dwca.ipni;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -21,14 +7,18 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import de.doering.dwca.utils.HttpUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class IpniGenusCrawler implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(IpniGenusCrawler.class);
@@ -49,19 +39,19 @@ public class IpniGenusCrawler implements Runnable {
 
     enum RANK_PARAM {ALL, FAM, INFRAFAM, GEN, INFRAGEN, SPEC, INFRASPEC};
 
-    private final CloseableHttpClient client;
+    private final HttpUtils http;
     private final List<Character> atoz = Lists.newArrayList();
     private final Set<String> genera;
     private final File ipniDir;
     private Map<Source, File> files = Maps.newHashMap();
 
 
-    public IpniGenusCrawler(CloseableHttpClient client, File ipniDir) {
+    public IpniGenusCrawler(HttpUtils client, File ipniDir) {
         this(client, ipniDir, Sets.<String>newHashSet());
     }
 
-    public IpniGenusCrawler(CloseableHttpClient client, File ipniDir, Set<String> genera) {
-        this.client = client;
+    public IpniGenusCrawler(HttpUtils client, File ipniDir, Set<String> genera) {
+        this.http = client;
         this.ipniDir = ipniDir;
         if (ipniDir.exists()) {
             LOG.info("IPNI directory {} existed already and is being cleaned", ipniDir);
@@ -89,19 +79,15 @@ public class IpniGenusCrawler implements Runnable {
         return URI.create(SEARCH.replace("{rank}", rank.name().toLowerCase()).replace("{genus}", genus) + sb.toString());
     }
 
-    private void retrieveGenera() throws IOException {
+    private void retrieveGenera() throws Exception {
         LOG.info("Discover all IPNI genera");
         for (Character c : atoz) {
             URI query = buildQuery(RANK_PARAM.GEN, null, c + WILDCARD);
             LOG.debug("query: {}", query);
-            HttpGet get = new HttpGet(query);
-
             // execute and keep result in memory
             ByteArrayOutputStream buffer = new ByteArrayOutputStream(16*1024);
-            try(CloseableHttpResponse response = client.execute(get)) {
-                HttpEntity entity = response.getEntity();
-                entity.writeTo(buffer);
-            }
+            InputStream in = http.getStream(query);
+            IOUtils.copy(in, buffer);
             LineIterator iter = new LineIterator(new StringReader(buffer.toString(Charsets.UTF_8.name())));
             Set<String> newGenera = Sets.newHashSet();
             boolean skipHeader = true;
@@ -126,19 +112,12 @@ public class IpniGenusCrawler implements Runnable {
         LOG.info("Discovered {} genera", genera.size());
     }
 
-    private void crawlGenus(Source src, String genus, FileOutputStream out) throws IOException {
+    private void crawlGenus(Source src, String genus, FileOutputStream out) throws Exception {
         LOG.info("Crawl {}, genus {}", src, genus);
         URI query = buildQuery(RANK_PARAM.ALL, src, genus);
-        HttpGet get = new HttpGet(query);
 
-        try(CloseableHttpResponse response = client.execute(get)) {
-            if (HttpUtils.success(response.getStatusLine())) {
-                HttpEntity entity = response.getEntity();
-                entity.writeTo(out);
-            } else {
-                LOG.error("Http error {} when crawling {}, genus {}", response.getStatusLine().getStatusCode(), src, genus);
-            }
-        }
+        InputStream in = http.getStream(query);
+        IOUtils.copy(in, out);
     }
 
     @Override

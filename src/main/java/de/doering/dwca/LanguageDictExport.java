@@ -1,13 +1,13 @@
 package de.doering.dwca;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class LanguageDictExport {
 

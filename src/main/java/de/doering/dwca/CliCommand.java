@@ -1,11 +1,10 @@
 package de.doering.dwca;
 
-import org.gbif.cli.BaseCommand;
-import org.gbif.cli.Command;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import de.doering.dwca.ipni.ArchiveBuilder;
+import org.gbif.cli.BaseCommand;
+import org.gbif.cli.Command;
 import org.kohsuke.MetaInfServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

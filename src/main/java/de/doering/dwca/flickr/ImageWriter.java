@@ -1,21 +1,16 @@
 package de.doering.dwca.flickr;
 
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.UnknownTerm;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.gbif.dwc.terms.*;
 import org.gbif.dwca.io.DwcaWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ImageWriter {
   private static final Logger LOG = LoggerFactory.getLogger(ImageWriter.class);
