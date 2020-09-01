@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +17,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -105,8 +102,8 @@ public class HttpUtils {
 
   private HttpRequest.Builder json(String url) {
     return HttpRequest.newBuilder(URI.create(url))
-          .header(HttpHeaders.CONTENT_TYPE, "application/json")
-          .header(HttpHeaders.ACCEPT, "application/json");
+          .header("Content-Type", "application/json")
+          .header("Accept", "application/json");
   }
 
   public <T> T readJson(String url, Class<T> objClazz) throws Exception {
@@ -159,13 +156,4 @@ public class HttpUtils {
     return null;
   }
 
-  public static void closeQuietly(CloseableHttpResponse resp) {
-    if (resp != null) {
-      try {
-        resp.close();
-      } catch (IOException e) {
-        LOG.warn("Failed to close http response", e);
-      }
-    }
-  }
 }

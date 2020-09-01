@@ -10,7 +10,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.HttpGet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,8 +89,6 @@ public class IPNICrawler implements Runnable {
         for (Character c : atoz) {
             URI query = buildQuery(RANK_PARAM.FAM, null, c + WILDCARD, "");
             LOG.debug("query: {}", query);
-            HttpGet get = new HttpGet(query);
-
             // execute and keep result in memory
             ByteArrayOutputStream buffer = new ByteArrayOutputStream(16*1024);
             InputStream in = http.getStream(XML_DOWNLOAD);
