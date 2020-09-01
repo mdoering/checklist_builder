@@ -15,9 +15,8 @@
  */
 package de.doering.dwca.ioc;
 
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.xml.sax.InputSource;
@@ -59,8 +58,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   List<String> cookies = null;
 
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 

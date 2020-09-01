@@ -17,10 +17,8 @@ package de.doering.dwca.clements;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.inject.Inject;
-import com.hp.hpl.jena.sparql.function.library.date;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -36,15 +34,14 @@ import org.gbif.dwc.terms.Term;
 import java.io.InputStream;
 import java.net.URI;
 import java.text.DateFormatSymbols;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalField;
-import java.time.temporal.TemporalUnit;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,8 +80,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     private static final int COL_REF_TITLE = 4;
     private static final int COL_REF_JOURNAL = 5;
 
-    @Inject
-    public ArchiveBuilder(CliConfiguration cfg) {
+    public ArchiveBuilder(BuilderConfig cfg) {
         super(DatasetType.CHECKLIST, cfg);
     }
 

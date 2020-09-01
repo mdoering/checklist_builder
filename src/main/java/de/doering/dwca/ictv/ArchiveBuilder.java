@@ -18,9 +18,8 @@ package de.doering.dwca.ictv;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -34,7 +33,6 @@ import org.gbif.dwc.terms.Term;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -67,8 +65,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int COL_COMPOSITION = 17;
   private static final int COL_LINK = 22;
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 

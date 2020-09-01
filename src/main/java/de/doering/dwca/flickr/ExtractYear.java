@@ -14,7 +14,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import de.doering.dwca.utils.DateUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
@@ -82,7 +82,7 @@ public class ExtractYear implements Runnable {
    * @param year the year to scan
    * @param imgWriter
    */
-  public ExtractYear(CliConfiguration cfg, int year, ImageWriter imgWriter) {
+  public ExtractYear(BuilderConfig cfg, int year, ImageWriter imgWriter) {
     this.year = Year.of(year);
     this.currPage  = 1;
     pageSize = cfg.flickrPageSize;
@@ -238,7 +238,7 @@ public class ExtractYear implements Runnable {
 
   public static void main(String[] args) throws FlickrException {
     // try individual photo
-    ExtractYear extracter = new ExtractYear(new CliConfiguration(), 2016, null);
+    ExtractYear extracter = new ExtractYear(new BuilderConfig(), 2016, null);
     extracter.loadPhoto("23785077770");
   }
 }

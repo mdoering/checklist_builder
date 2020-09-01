@@ -17,9 +17,8 @@ package de.doering.dwca.dsmz;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import de.doering.dwca.utils.ParagraphBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
@@ -83,8 +82,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final String IJSB = "Int. J. Syst. Bacteriol. ";
   private static final Integer LAST_IJSB_VOLUME = 49;
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg, "mdoering@gbif.org", "NzFhs9MAC44L");
   }
 

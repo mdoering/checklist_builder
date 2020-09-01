@@ -15,13 +15,12 @@
  */
 package de.doering.dwca.arkive;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.dwc.terms.DcTerm;
@@ -68,8 +67,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     private int usageCounter;
     private int imageCounter;
 
-    @Inject
-    public ArchiveBuilder(CliConfiguration cfg) {
+    public ArchiveBuilder(BuilderConfig cfg) {
         super(DatasetType.CHECKLIST, cfg);
     }
 

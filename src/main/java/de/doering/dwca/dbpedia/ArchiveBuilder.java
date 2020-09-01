@@ -15,10 +15,9 @@
  */
 package de.doering.dwca.dbpedia;
 
-import com.google.inject.Inject;
 import com.hp.hpl.jena.query.*;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.gbif.api.vocabulary.DatasetType;
 
 import java.io.IOException;
@@ -33,8 +32,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     private static final String LOGO = null;
     private static final String DESCRIPTION = "";
 
-    @Inject
-    public ArchiveBuilder(CliConfiguration cfg) {
+    public ArchiveBuilder(BuilderConfig cfg) {
         super(DatasetType.CHECKLIST, cfg);
     }
 

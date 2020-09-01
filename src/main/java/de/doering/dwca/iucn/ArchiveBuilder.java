@@ -18,9 +18,8 @@ package de.doering.dwca.iucn;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.vocabulary.ContactType;
@@ -60,8 +59,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final String COMMON_NAME = "http://mb.gbif.org/iucn/common.json";
   private static final String NARRATIVE = "http://mb.gbif.org/iucn/narrative.json";
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 

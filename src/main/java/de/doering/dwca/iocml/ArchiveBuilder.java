@@ -18,9 +18,8 @@ package de.doering.dwca.iocml;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import de.doering.dwca.ioc.IocXmlHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -41,8 +40,6 @@ import javax.annotation.Nullable;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -69,8 +66,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   private int columns = -1;
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 

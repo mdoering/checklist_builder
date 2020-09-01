@@ -29,16 +29,16 @@ import java.util.Date;
 public abstract class AbstractBuilder implements Runnable {
   protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
   protected final Dataset dataset = new Dataset();
-  protected final CliConfiguration cfg;
+  protected final BuilderConfig cfg;
   protected final HttpUtils http;
   protected DwcaWriter writer;
   private final DatasetType type;
 
-  public AbstractBuilder(DatasetType type, CliConfiguration cfg) {
+  public AbstractBuilder(DatasetType type, BuilderConfig cfg) {
     this(type, cfg, null, null);
   }
 
-  public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable String username, @Nullable String password) {
+  public AbstractBuilder(DatasetType type, BuilderConfig cfg, @Nullable String username, @Nullable String password) {
     this.cfg = cfg;
     http = new HttpUtils(username, password);
     this.type = type;

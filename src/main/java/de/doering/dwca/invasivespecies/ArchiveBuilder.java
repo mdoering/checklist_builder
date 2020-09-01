@@ -15,9 +15,8 @@
  */
 package de.doering.dwca.invasivespecies;
 
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.ccil.cowan.tagsoup.Parser;
 import org.gbif.api.vocabulary.DatasetType;
 import org.xml.sax.InputSource;
@@ -32,8 +31,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     private static final String LINK_BASE = "http://www.invasivespecies.net/database/species/";
     private static final String ENCODING = "latin1";
 
-    @Inject
-    public ArchiveBuilder(CliConfiguration cfg) {
+    public ArchiveBuilder(BuilderConfig cfg) {
         super(DatasetType.CHECKLIST, cfg);
     }
 

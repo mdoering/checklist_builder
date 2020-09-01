@@ -15,9 +15,8 @@
  */
 package de.doering.dwca.itis;
 
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.vocabulary.ContactType;
@@ -73,13 +72,12 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int COL_REF_YEAR = 3;
   private static final int COL_REF_TITLE = 4;
   private static final int COL_REF_JOURNAL = 5;
-  private static final Term TERM_ITIS_COMPLETE = new UnknownTerm(URI.create("http:///itis.org/terms/completeness"));
-  private static final Term TERM_PAGES = new UnknownTerm(URI.create("http:///itis.org/terms/pages"));
-  private static final Term TERM_ISBN = new UnknownTerm(URI.create("http:///itis.org/terms/ISBN"));
-  private static final Term TERM_ISSN = new UnknownTerm(URI.create("http:///itis.org/terms/ISSN"));
+  private static final Term TERM_ITIS_COMPLETE = new UnknownTerm(URI.create("http:///itis.org/terms/completeness"), false);
+  private static final Term TERM_PAGES = new UnknownTerm(URI.create("http:///itis.org/terms/pages"), false);
+  private static final Term TERM_ISBN = new UnknownTerm(URI.create("http:///itis.org/terms/ISBN"), false);
+  private static final Term TERM_ISSN = new UnknownTerm(URI.create("http:///itis.org/terms/ISSN"), false);
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 

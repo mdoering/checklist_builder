@@ -7,9 +7,8 @@ import com.flickr4java.flickr.Transport;
 import com.flickr4java.flickr.machinetags.MachinetagsInterface;
 import com.flickr4java.flickr.machinetags.Namespace;
 import com.flickr4java.flickr.machinetags.NamespacesList;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.gbif.api.vocabulary.DatasetType;
 
 import java.io.IOException;
@@ -22,8 +21,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   private final int MIN_YEAR = 1980;
   private final ExecutorService exec;
 
-  @Inject
-  public ArchiveBuilder(CliConfiguration cfg) {
+  public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.OCCURRENCE, cfg);
     exec = Executors.newFixedThreadPool(cfg.threads);
   }

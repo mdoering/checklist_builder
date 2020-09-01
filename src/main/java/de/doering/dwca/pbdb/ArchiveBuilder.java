@@ -17,9 +17,8 @@ package de.doering.dwca.pbdb;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.terms.DcTerm;
@@ -68,9 +67,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
     private static final String TRUE = Boolean.TRUE.toString();
 
-
-    @Inject
-    public ArchiveBuilder(CliConfiguration cfg) {
+    public ArchiveBuilder(BuilderConfig cfg) {
         super(DatasetType.CHECKLIST, cfg);
     }
 

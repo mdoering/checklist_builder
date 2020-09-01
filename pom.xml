@@ -4,12 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.gbif</groupId>
-    <artifactId>motherpom</artifactId>
-    <version>24</version>
-  </parent>
-
   <groupId>de.doering</groupId>
   <artifactId>dwca-builder</artifactId>
   <version>1.0-SNAPSHOT</version>
@@ -20,22 +14,22 @@
 
   <properties>
     <beanutils.version>1.8.3</beanutils.version>
-    <compress.version>1.5</compress.version>
-    <dwc-api.version>1.16</dwc-api.version>
+    <compress.version>1.20</compress.version>
+    <dwc-api.version>1.28</dwc-api.version>
     <dwca-io.version>1.32</dwca-io.version>
     <flickr4j.version>2.16</flickr4j.version>
-    <gbif-api.version>0.39</gbif-api.version>
+    <gbif-api.version>0.117</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
     <gbif-common.version>0.36</gbif-common.version>
     <gbif-parsers.version>0.28</gbif-parsers.version>
     <guava.version>18.0</guava.version>
     <guice.version>4.1.0</guice.version>
     <io.version>2.5</io.version>
-    <jackson.version>1.9.13</jackson.version>
+    <jackson.version>2.11.2</jackson.version>
     <jcommander.version>1.48</jcommander.version>
     <jena.version>2.10.0</jena.version>
     <junit.version>4.11</junit.version>
-    <lang3.version>3.4</lang3.version>
+    <lang3.version>3.11</lang3.version>
     <logback.version>1.0.13</logback.version>
     <mockito.version>1.8.5</mockito.version>
     <name-parser.version>2.17</name-parser.version>
@@ -57,11 +51,20 @@
           <target>11</target>
         </configuration>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.1.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.4.1</version>
+        <version>3.2.1</version>
         <configuration>
           <createDependencyReducedPom>true</createDependencyReducedPom>
           <filters>
@@ -89,7 +92,7 @@
                 <!-- would with the assembly plugin                                       -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <Main-Class>org.gbif.cli.Application</Main-Class>
+                    <Main-Class>de.doering.dwca.BuilderCli</Main-Class>
                   </manifestEntries>
                 </transformer>
                 <!-- This bit merges the various GeoTools META-INF/services files         -->
@@ -146,16 +149,6 @@
   <dependencies>
     <!-- GBIF -->
     <dependency>
-      <groupId>org.gbif.common</groupId>
-      <artifactId>gbif-cli</artifactId>
-      <version>${gbif-cli.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common</artifactId>
-      <version>${gbif-common.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
       <version>${gbif-api.version}</version>
@@ -177,21 +170,7 @@
       <artifactId>jcommander</artifactId>
       <version>${jcommander.version}</version>
     </dependency>
-    <!-- false positive from maven dep:analyze -->
-    <dependency>
-      <groupId>org.kohsuke.metainf-services</groupId>
-      <artifactId>metainf-services</artifactId>
-      <version>1.5</version>
-      <!-- This is the proper declaration. For details see the homepage of the project. -->
-      <optional>true</optional>
-    </dependency>
 
-    <!-- Guice -->
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <version>${guice.version}</version>
-    </dependency>
 
     <!-- Logging -->
     <dependency>
@@ -225,11 +204,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${lang3.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>${beanutils.version}</version>
     </dependency>
 
     <!-- Other -->
@@ -265,16 +239,23 @@
         </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>

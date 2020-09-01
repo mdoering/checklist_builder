@@ -13,7 +13,7 @@ import java.util.List;
 /**
  *
  */
-public class CliConfiguration {
+public class BuilderConfig {
 
   @Parameter(names = {"-r", "--repository"})
   @NotNull
@@ -50,10 +50,11 @@ public class CliConfiguration {
     return new File(repository, source);
   }
 
-  public Class<Runnable> builderClass() {
+  public Class<? extends AbstractBuilder> builderClass() {
     try {
-      String classname = CliConfiguration.class.getPackage().getName() + "." + source.toLowerCase() + ".ArchiveBuilder";
-      return (Class<Runnable>) CliConfiguration.class.getClassLoader().loadClass(classname);
+      String classname = BuilderConfig.class.getPackage().getName() + "." + source.toLowerCase() + ".ArchiveBuilder";
+      return (Class<? extends AbstractBuilder>) BuilderConfig.class.getClassLoader().loadClass(classname);
+
     } catch (ClassNotFoundException e) {
       List<String> sources = Lists.newArrayList();
       Joiner joiner = Joiner.on(",").skipNulls();

@@ -16,9 +16,8 @@
 package de.doering.dwca.ipni;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
-import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.BuilderConfig;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.registry.metadata.EMLWriter;
@@ -54,12 +53,11 @@ public class ArchiveBuilder extends AbstractBuilder {
     private final Set<String> testFamilies = Sets.newHashSet();
     private File dwcaDir;
 
-    @Inject
-    public ArchiveBuilder(CliConfiguration cfg) {
+    public ArchiveBuilder(BuilderConfig cfg) {
         super(DatasetType.CHECKLIST, cfg);
     }
 
-    public ArchiveBuilder(CliConfiguration cfg, String ... families) {
+    public ArchiveBuilder(BuilderConfig cfg, String ... families) {
         super(DatasetType.CHECKLIST, cfg);
         for (String f : families) {
             testFamilies.add(f);
