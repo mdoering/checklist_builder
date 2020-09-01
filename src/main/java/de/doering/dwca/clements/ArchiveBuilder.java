@@ -94,22 +94,13 @@ public class ArchiveBuilder extends AbstractBuilder {
         LocalDate today = LocalDate.now();
         for (int i=0; i<=24; i++) {
             LocalDate date = today.minus(i, ChronoUnit.MONTHS);
-            if (exists(date)) {
+            String url = url(date);
+            LOG.info("Try release on {} at {}", date, url);
+            if (http.exists(url)) {
                 return date;
             }
         }
         throw new IllegalStateException("Unable to find any publication since 2 years");
-    }
-
-    private boolean exists(LocalDate date){
-        try {
-            String url = url(date);
-            LOG.info("Try release on {} at {}", date, url);
-            http.head(url);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     @VisibleForTesting

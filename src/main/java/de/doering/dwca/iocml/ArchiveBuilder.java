@@ -15,6 +15,7 @@
  */
 package de.doering.dwca.iocml;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -40,6 +41,8 @@ import javax.annotation.Nullable;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -47,8 +50,7 @@ import static de.doering.dwca.ioc.ArchiveBuilder.XML_DOWNLOAD;
 
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
-  private static final String DOWNLOAD = "http://www.worldbirdnames.org/Multiling%20IOC%206.3.xlsx";
-  private static final File FILE = new File("/Users/markus/Downloads/Multiling IOC 6.3.xlsx");
+  private static final String DOWNLOAD = "https://www.worldbirdnames.org/Multiling%20IOC%20{VERSION}.xlsx";
 
   // metadata
   private static final String TITLE = "Multilingual IOC World Bird List, v";
@@ -101,14 +103,52 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
   }
 
+  @VisibleForTesting
+  static String url(String version){
+    return DOWNLOAD.replace("{VERSION}", version);
+  }
+
+  private String findLastVersion(){
+    // recently these have been published annually in august only, but there have been different month before
+    // try and find a list for each month going backwards until we hit sth
+    for (int major=15; major>=10; major--) {
+      for (int minor=2; minor>0; minor--) {
+        String version = version(major, minor, null);
+        String url = url(version);
+        LOG.info("Try version {} at {}", version, url);
+        if (http.exists(url)){
+          return url;
+        }
+        // try _b suffix which sometimes is used
+        version = version(major, minor, "_b");
+        url = url(version);
+        LOG.info("Try version {} at {}", version, url);
+        if (http.exists(url)){
+          return url;
+        }
+      }
+    }
+    throw new IllegalStateException("Unable to find any publication");
+  }
+
+  @VisibleForTesting
+  static String version(int major, int minor, String suffix) {
+    String version = major+"."+minor;
+    if (suffix != null) {
+      version = version + suffix;
+    }
+    return version;
+  }
+
   private File downloadXls() throws Exception {
+    String url = findLastVersion();
     // get excel sheet
-    LOG.info("Downloading latest data from {}", DOWNLOAD);
+    LOG.info("Downloading latest data from {}", url);
 
     // download xls
     final File xls = File.createTempFile("ioc", "dwca");
     xls.deleteOnExit();
-    http.download(DOWNLOAD, xls);
+    http.download(url, xls);
 
     return xls;
   }

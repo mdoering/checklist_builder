@@ -19,6 +19,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -42,6 +43,15 @@ public class HttpUtils {
         .build();
     this.username = username;
     this.password = password;
+  }
+
+  public boolean exists(String url){
+    try {
+      head(url);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   public HttpResponse<InputStream> head(String url) throws Exception {
