@@ -42,11 +42,9 @@ import java.util.Set;
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
   // https://talk.ictvonline.org/files/master-species-lists/
-  // 8266
   private static final String DOWNLOAD = "http://talk.ictvonline.org/files/master-species-lists/m/msl/9601/download";
-  private static final String PUBDATE = "2019-05-31";
-  private static final String VERSION = "2019 v2";
-  private static final URI PROPOSAL_URL = URI.create("https://data.ictvonline.org/proposals/");
+  private static final String PUBDATE = "2020-04-23";
+  private static final String VERSION = "2019 v1";
 
   // metadata
   private static final String ORG = " International Committee on Taxonomy of Viruses (ICTV)";
@@ -67,7 +65,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   private static final int COL_TYPE_SPECIES = 16;
   private static final int COL_COMPOSITION = 17;
-  private static final int COL_LINK = 21;
+  private static final int COL_LINK = 22;
 
   @Inject
   public ArchiveBuilder(CliConfiguration cfg) {
@@ -85,7 +83,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     LOG.info("Downloading latest data from {}", DOWNLOAD);
 
     // download xls
-    final File xls = File.createTempFile("ictv", "xls");
+    final File xls = File.createTempFile("ictv", ".xls");
     xls.deleteOnExit();
     http.download(DOWNLOAD, xls);
     return xls;

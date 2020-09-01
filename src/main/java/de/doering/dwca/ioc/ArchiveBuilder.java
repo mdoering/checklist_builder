@@ -18,8 +18,6 @@ package de.doering.dwca.ioc;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
-import de.doering.dwca.utils.HttpUtils;
-import org.apache.http.Header;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.xml.sax.InputSource;
@@ -91,22 +89,18 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
   }
 
-  InputStream getStreamWithCookies() throws Exception {
-    URI uri = URI.create(XML_DOWNLOAD);
-    HttpRequest.Builder builder;
-    if (cookies == null) {
-      builder = HttpRequest.newBuilder(uri).method("HEAD", HttpRequest.BodyPublishers.noBody());
-      HttpResponse<String> cookieResponse = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
-      cookies = cookieResponse.headers().allValues("Set-Cookie");
-    }
+  void setCookies() throws Exception {
+    HttpResponse<?> cookieResponse = http.head(XML_DOWNLOAD);
+    cookies = cookieResponse.headers().allValues("Set-Cookie");
+  }
 
-    builder = HttpRequest.newBuilder(uri);
-    builder.header("Cookie", cookies.get(0).split(";")[0] + "; " + cookies.get(1).split(";")[0]);
-    HttpResponse<InputStream> resp = client.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
-    if (HttpUtils.success(resp)) {
-      return resp.body();
+  InputStream getStreamWithCookies() throws Exception {
+    if (cookies == null) {
+      setCookies();
     }
-    throw new RuntimeException("Error getting "+XML_DOWNLOAD+": " + resp.statusCode());
+    HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(XML_DOWNLOAD));
+    builder.header("Cookie", cookies.get(0).split(";")[0] + "; " + cookies.get(1).split(";")[0]);
+    return http.send(builder, HttpResponse.BodyHandlers.ofInputStream()).body();
   }
 
   @Override

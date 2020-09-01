@@ -36,57 +36,53 @@ public class HttpUtils {
     MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
-  public HttpUtils(HttpClient client, String username, String password) {
-    this.client = client;
+  public HttpUtils(String username, String password) {
+    this.client = HttpClient.newBuilder()
+        .followRedirects(HttpClient.Redirect.ALWAYS)
+        .build();
     this.username = username;
     this.password = password;
   }
 
+  public HttpResponse<InputStream> head(String url) throws Exception {
+    HttpRequest.Builder req = HttpRequest.newBuilder(URI.create(url))
+        .method("HEAD", HttpRequest.BodyPublishers.noBody());
+    return send(req, HttpResponse.BodyHandlers.ofInputStream());
+  }
+
+
   public String get(String url) throws Exception {
-    HttpResponse<String> resp = execString(HttpRequest.newBuilder(URI.create(url)));
-    if (HttpUtils.success(resp)) {
-      return resp.body();
-    }
-    LOG.warn("Error getting {}: {}", url, resp.statusCode());
-    return null;
+    return get(URI.create(url));
+  }
+  public String get(URI url) throws Exception {
+    return send(HttpRequest.newBuilder(url), HttpResponse.BodyHandlers.ofString()).body();
   }
 
   public InputStream getStream(String url) throws Exception {
     return getStream(URI.create(url));
   }
   public InputStream getStream(URI url) throws Exception {
-    HttpResponse<InputStream> resp = execStream(HttpRequest.newBuilder(url));
-    if (HttpUtils.success(resp)) {
-      return resp.body();
-    }
-    LOG.warn("Error getting {}: {}", url, resp.statusCode());
-    return null;
+    return send(HttpRequest.newBuilder(url), HttpResponse.BodyHandlers.ofInputStream()).body();
   }
 
-  public int download(String url, File downloadTo) throws Exception {
-    return download(URI.create(url), downloadTo);
+  public void download(String url, File downloadTo) throws Exception {
+    download(URI.create(url), downloadTo);
   }
 
-  public int download(URI url, File downloadTo) throws Exception {
-    HttpRequest get = basicAuth(HttpRequest.newBuilder(url)).build();
+  public void download(URI url, File downloadTo) throws Exception {
     // execute
-    HttpResponse<Path> resp = client.send(get, HttpResponse.BodyHandlers.ofFile(downloadTo.toPath()));
-    if (success(resp)) {
-      LOG.info("Successfully downloaded {} to {}", url, downloadTo.getAbsolutePath());
-    } else {
-      LOG.error("Downloading {} to {} failed!: {}", url, downloadTo.getAbsolutePath(), resp.statusCode());
+    HttpResponse<Path> resp = send(HttpRequest.newBuilder(url), HttpResponse.BodyHandlers.ofFile(downloadTo.toPath()));
+    LOG.info("Downloaded {} to {}", url, downloadTo.getAbsolutePath());
+  }
+
+  public <T> HttpResponse<T> send(HttpRequest.Builder req, HttpResponse.BodyHandler<T> bodyHandler) throws Exception {
+    basicAuth(req);
+    req.header("User-Agent", "GBIF-ChecklistBuilder/1.0");
+    HttpResponse<T> resp = client.send(req.build(), bodyHandler);
+    if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+      return resp;
     }
-    return resp.statusCode();
-  }
-
-  private HttpResponse<InputStream> execStream(HttpRequest.Builder req) throws Exception {
-    basicAuth(req);
-    return client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
-  }
-
-  private HttpResponse<String> execString(HttpRequest.Builder req) throws Exception {
-    basicAuth(req);
-    return client.send(req.build(), HttpResponse.BodyHandlers.ofString());
+    throw new RuntimeException("HTTP Error " + resp.statusCode() + " for " + req);
   }
 
   private HttpRequest.Builder basicAuth(HttpRequest.Builder req) {
@@ -104,30 +100,18 @@ public class HttpUtils {
   }
 
   public <T> T readJson(String url, Class<T> objClazz) throws Exception {
-    HttpResponse<InputStream> resp = execStream(json(url));
-    if (success(resp)) {
-      return MAPPER.readValue(resp.body(), objClazz);
-    }
-    LOG.warn("Error getting {}: {}", url, resp.statusCode());
-    return null;
+    HttpResponse<InputStream> resp = send(json(url), HttpResponse.BodyHandlers.ofInputStream());
+    return MAPPER.readValue(resp.body(), objClazz);
   }
 
   /**
    * Reads a JSON response containing a "results" property containing an array.
    */
   public <T> List<T> readJsonResult(String url, Class<T> objClazz) throws Exception {
-    HttpResponse<InputStream> resp = execStream(json(url));
-    if (success(resp)) {
-      JsonNode parent = new ObjectMapper().readTree(resp.body());
-      JavaType itemType = MAPPER.getTypeFactory().constructCollectionType(List.class, objClazz);
-      return MAPPER.readValue(parent.get("result").toString(), itemType);
-    }
-    LOG.warn("Error getting {}: {}", url, resp.statusCode());
-    return null;
-  }
-
-  public static boolean success(HttpResponse<?> resp) {
-    return resp != null && resp.statusCode() >= 200 && resp.statusCode() < 300;
+    HttpResponse<InputStream> resp = send(json(url), HttpResponse.BodyHandlers.ofInputStream());
+    JsonNode parent = new ObjectMapper().readTree(resp.body());
+    JavaType itemType = MAPPER.getTypeFactory().constructCollectionType(List.class, objClazz);
+    return MAPPER.readValue(parent.get("result").toString(), itemType);
   }
 
   private void saveToFile(HttpResponse<InputStream> response, File downloadTo) throws IOException {

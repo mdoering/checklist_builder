@@ -24,14 +24,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.util.Date;
 
 public abstract class AbstractBuilder implements Runnable {
   protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
   protected final Dataset dataset = new Dataset();
   protected final CliConfiguration cfg;
-  protected final HttpClient client;
   protected final HttpUtils http;
   protected DwcaWriter writer;
   private final DatasetType type;
@@ -42,10 +40,7 @@ public abstract class AbstractBuilder implements Runnable {
 
   public AbstractBuilder(DatasetType type, CliConfiguration cfg, @Nullable String username, @Nullable String password) {
     this.cfg = cfg;
-    client = HttpClient.newBuilder()
-        .followRedirects(HttpClient.Redirect.ALWAYS)
-        .build();
-    http = new HttpUtils(client, username, password);
+    http = new HttpUtils(username, password);
     this.type = type;
   }
 
