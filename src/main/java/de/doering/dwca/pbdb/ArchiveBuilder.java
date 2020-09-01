@@ -40,7 +40,7 @@ import java.util.*;
 public class ArchiveBuilder extends AbstractBuilder {
 
     // for testing add parameter: &limit=100
-    private static final String DOWNLOAD = "http://paleobiodb.org/data1.2/taxa/list.tsv?all_records&show=attr,common,app,size,ecospace,img,ref,refattr";
+    private static final String DOWNLOAD = "https://paleobiodb.org/data1.2/taxa/list.tsv?all_records&show=attr,common,app,size,ecospace,img,ref,refattr";
     // metadata
     private static final String TITLE = "The Paleobiology Database";
     private static final URI HOMEPAGE = URI.create("https://paleobiodb.org/");

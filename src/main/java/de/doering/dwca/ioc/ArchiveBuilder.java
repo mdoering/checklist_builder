@@ -18,6 +18,8 @@ package de.doering.dwca.ioc;
 import com.google.inject.Inject;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.CliConfiguration;
+import de.doering.dwca.utils.HttpUtils;
+import org.apache.http.Header;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.xml.sax.InputSource;
@@ -30,13 +32,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
 
 public class ArchiveBuilder extends AbstractBuilder {
-  public static final String XML_DOWNLOAD = "http://www.worldbirdnames.org/master_ioc-names_xml.xml";
+  public static final String XML_DOWNLOAD = "https://www.worldbirdnames.org/master_ioc-names_xml.xml";
   public static final String ENCODING = "UTF-8";
   // metadata
-  public static final String HOMEPAGE = "http://www.worldbirdnames.org";
-  public static final String LOGO = "http://www.worldbirdnames.org/img/hdr7.jpg";
+  public static final String HOMEPAGE = "https://www.worldbirdnames.org";
+  public static final String LOGO = "https://www.worldbirdnames.org/img/hdr7.jpg";
   public static final String CONTACT_ORG = "IOC World Bird List";
   private static final String CONTACT_EMAIL = "worldbirdnames@gmail.com";
   public static final String LICENSE = "Creative Commons Attribution 3.0 Unported License";
@@ -52,6 +58,8 @@ public class ArchiveBuilder extends AbstractBuilder {
       "\n" +
       "Special thanks always to our expert advisors (left panel), to Sally Conyne for compiling Ranges, to Eng-Li Green for website management, to Larry Master and Colin Campbell for photos, to Peter Kovalik for spreadsheet magic, and to all volunteer participants. We welcome your corrections and your suggestions for improvement.  " +
       "You can reach us at worldbirdnames@gmail.com.";
+  List<String> cookies = null;
+
 
   @Inject
   public ArchiveBuilder(CliConfiguration cfg) {
@@ -71,7 +79,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
     try {
       // execute
-      InputStream in = http.getStream(XML_DOWNLOAD);
+      InputStream in = getStreamWithCookies();
       Reader reader = new InputStreamReader(in, ENCODING);
       parser.parse(new InputSource(reader), handler);
 
@@ -81,6 +89,24 @@ public class ArchiveBuilder extends AbstractBuilder {
     } catch (Exception e) {
       LOG.error("Cannot process IOC XML", e);
     }
+  }
+
+  InputStream getStreamWithCookies() throws Exception {
+    URI uri = URI.create(XML_DOWNLOAD);
+    HttpRequest.Builder builder;
+    if (cookies == null) {
+      builder = HttpRequest.newBuilder(uri).method("HEAD", HttpRequest.BodyPublishers.noBody());
+      HttpResponse<String> cookieResponse = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+      cookies = cookieResponse.headers().allValues("Set-Cookie");
+    }
+
+    builder = HttpRequest.newBuilder(uri);
+    builder.header("Cookie", cookies.get(0).split(";")[0] + "; " + cookies.get(1).split(";")[0]);
+    HttpResponse<InputStream> resp = client.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+    if (HttpUtils.success(resp)) {
+      return resp.body();
+    }
+    throw new RuntimeException("Error getting "+XML_DOWNLOAD+": " + resp.statusCode());
   }
 
   @Override
