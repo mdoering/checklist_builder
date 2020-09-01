@@ -164,14 +164,6 @@
       <version>${dwca-io.version}</version>
     </dependency>
 
-    <!-- other -->
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
-      <version>${jcommander.version}</version>
-    </dependency>
-
-
     <!-- Logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -208,6 +200,11 @@
 
     <!-- Other -->
     <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>${jcommander.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
@@ -240,6 +237,7 @@
       </exclusions>
     </dependency>
 
+    <!-- jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
