@@ -16,12 +16,14 @@
     <beanutils.version>1.8.3</beanutils.version>
     <compress.version>1.20</compress.version>
     <dwc-api.version>1.28</dwc-api.version>
-    <dwca-io.version>1.32</dwca-io.version>
+    <dwca-io.version>2.9</dwca-io.version>
     <flickr4j.version>2.16</flickr4j.version>
-    <gbif-api.version>0.117</gbif-api.version>
+    <freemarker.version>2.3.28</freemarker.version>
+    <gbif-api.version>0.118</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
     <gbif-common.version>0.36</gbif-common.version>
-    <gbif-parsers.version>0.28</gbif-parsers.version>
+    <gbif-parsers.version>0.52</gbif-parsers.version>
+    <gbif-registry.version>2.105</gbif-registry.version>
     <guava.version>18.0</guava.version>
     <guice.version>4.1.0</guice.version>
     <io.version>2.5</io.version>
@@ -34,8 +36,9 @@
     <mockito.version>1.8.5</mockito.version>
     <name-parser.version>2.17</name-parser.version>
     <poi.version>3.12</poi.version>
-    <postgresql.version>9.4.1208.jre7</postgresql.version>
+    <postgresql.version>42.2.16.jre7</postgresql.version>
     <slf4j.version>1.7.21</slf4j.version>
+    <sqllite.version>3.32.3.2</sqllite.version>
     <tagsoup.version>1.2.1</tagsoup.version>
   </properties>
 
@@ -154,6 +157,12 @@
       <version>${gbif-api.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-metadata</artifactId>
+      <version>${gbif-registry.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
       <version>${dwc-api.version}</version>
@@ -203,6 +212,11 @@
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
       <version>${jcommander.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>${freemarker.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -282,7 +296,7 @@
       <dependency>
           <groupId>org.xerial</groupId>
           <artifactId>sqlite-jdbc</artifactId>
-          <version>3.20.0</version>
+          <version>${sqllite.version}</version>
       </dependency>
 
     <!-- Test -->

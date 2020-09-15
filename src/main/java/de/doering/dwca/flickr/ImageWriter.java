@@ -2,8 +2,8 @@ package de.doering.dwca.flickr;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.gbif.dwc.DwcaWriter;
 import org.gbif.dwc.terms.*;
-import org.gbif.dwca.io.DwcaWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

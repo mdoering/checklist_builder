@@ -7,12 +7,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.gbif.dwc.DwcaWriter;
+import org.gbif.dwc.SimpleSaxHandler;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwca.io.DwcaWriter;
-import org.gbif.dwca.io.SimpleSaxHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 

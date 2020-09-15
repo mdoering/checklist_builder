@@ -5,6 +5,7 @@ import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
 import de.doering.dwca.utils.ExcelUtils;
 import de.doering.dwca.utils.HttpUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.gbif.api.model.registry.Citation;
@@ -14,8 +15,9 @@ import org.gbif.api.model.registry.eml.DataDescription;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.dwc.DwcaWriter;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwca.io.DwcaWriter;
+import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 public abstract class AbstractBuilder implements Runnable {
@@ -42,6 +47,13 @@ public abstract class AbstractBuilder implements Runnable {
     this.cfg = cfg;
     http = new HttpUtils(username, password);
     this.type = type;
+  }
+
+  private InputStream toEml() throws IOException {
+    EMLWriter ew = EMLWriter.newInstance();
+    StringWriter sw = new StringWriter();
+    ew.writeTo(dataset, sw);
+    return IOUtils.toInputStream(sw.getBuffer(), StandardCharsets.UTF_8);
   }
 
   @Override
@@ -63,7 +75,7 @@ public abstract class AbstractBuilder implements Runnable {
       // finish archive and zip it
       final File dwcaDir = cfg.archiveDir();
       LOG.info("Bundling archive at {}", dwcaDir.getAbsolutePath());
-      writer.setEml(dataset);
+      writer.setMetadata(toEml(), "eml.xml");
       writer.close();
 
       // compress
@@ -72,6 +84,7 @@ public abstract class AbstractBuilder implements Runnable {
       LOG.info("Dwc archive completed at {} !", zip);
 
     } catch (Exception e) {
+      LOG.error("Error building dwc archive for {}", cfg.source, e);
       throw new RuntimeException(e);
     }
   }

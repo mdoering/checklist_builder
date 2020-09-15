@@ -2,12 +2,11 @@ package de.doering.dwca.ipni;
 
 import com.google.common.base.Strings;
 import org.gbif.api.model.checklistbank.ParsedName;
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.dwc.DwcaWriter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwca.io.DwcaWriter;
 import org.gbif.nameparser.NameParser;
 import org.gbif.nameparser.UnparsableException;
 import org.gbif.utils.file.CompressionUtil;
@@ -177,7 +176,6 @@ public class IpniPostgres {
 
     // finish archive and zip it
     LOG.info("Bundling archive at {}", dwca.getAbsolutePath());
-    writer.setEml(new Dataset());
     writer.close();
 
     // compress
