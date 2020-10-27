@@ -6,6 +6,6 @@ import org.junit.Ignore;
 public class ManualCli {
 
   public static void main(String[] args) throws Exception {
-    BuilderCli.main( new String[]{"-s", "iocml",   "-r", "/tmp/checklist_builder/archives"} );
+    BuilderCli.main( new String[]{"-s", "iucn", "-r", "/tmp/checklist_builder/archives"} );
   }
 }

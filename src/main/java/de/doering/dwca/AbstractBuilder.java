@@ -14,8 +14,9 @@ import org.gbif.api.model.registry.eml.DataDescription;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.dwc.DwcaWriter;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwca.io.DwcaWriter;
+import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +24,14 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Date;
 
 public abstract class AbstractBuilder implements Runnable {
   protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
   protected final Dataset dataset = new Dataset();
+  protected final EMLWriter emlWriter = EMLWriter.newInstance();
   protected final BuilderConfig cfg;
   protected final HttpUtils http;
   protected DwcaWriter writer;
@@ -52,7 +55,7 @@ public abstract class AbstractBuilder implements Runnable {
       addMetadataProvider();
 
       try {
-        writer = new DwcaWriter(type == DatasetType.CHECKLIST ? DwcTerm.Taxon : DwcTerm.Occurrence, cfg.archiveDir(), false);
+        writer = new DwcaWriter(type == DatasetType.CHECKLIST ? DwcTerm.Taxon : DwcTerm.Occurrence, cfg.archiveDir(), true);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -63,7 +66,9 @@ public abstract class AbstractBuilder implements Runnable {
       // finish archive and zip it
       final File dwcaDir = cfg.archiveDir();
       LOG.info("Bundling archive at {}", dwcaDir.getAbsolutePath());
-      writer.setEml(dataset);
+      StringWriter eml = new StringWriter();
+      emlWriter.writeTo(dataset, eml);
+      writer.addMetadata(eml.getBuffer().toString(), "eml.xml");
       writer.close();
 
       // compress

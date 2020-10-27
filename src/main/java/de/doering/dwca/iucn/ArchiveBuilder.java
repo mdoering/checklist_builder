@@ -30,6 +30,9 @@ import org.gbif.dwc.terms.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,10 +42,12 @@ import java.util.regex.Pattern;
 public class ArchiveBuilder extends AbstractBuilder {
 
   // metadata
-  private static final String TITLE = "IUCN Red List of Threatened Species";
+  private static final String TITLE = "The IUCN Red List of Threatened Species";
   private static final URI HOMEPAGE = URI.create("https://www.iucnredlist.org/");
   private static final URI LOGO = URI.create("https://raw.githubusercontent.com/mdoering/checklist_builder/master/src/main/resources/iucn/IUCN_Red_List.svg");
   private static final String CONTACT_ORG = "International Union for Conservation of Nature";
+  private static final String CITATION_FORMAT = "IUCN ({YEAR}). The IUCN Red List of Threatened Species. " +
+    "Version {VERSION}. https://www.iucnredlist.org. Downloaded on {DL_DATE}. https://doi.org/10.15468/0qnb58";
 
   public static final Pattern SPAN_ITALIC = Pattern.compile("<span style=\"font-style: italic;\">(.*?)</span>");
   public static final Pattern SPAN_STRONG = Pattern.compile("<span style=\"font-weight: bold;\">(.*?)</span>");
@@ -52,42 +57,45 @@ public class ArchiveBuilder extends AbstractBuilder {
   // This is just the documentation/demo token.
   private static final String TOKEN = "9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
 
-  //  private static final String SPECIES = "https://apiv3.iucnredlist.org/api/v3/species/id/{KEY}?token="+TOKEN;
-  private static final String SPECIES = "http://mb.gbif.org/iucn/species.json";
-  private static final String CITATION = "http://mb.gbif.org/iucn/citation.json";
-  private static final String COUNTRY = "http://mb.gbif.org/iucn/countries.json";
-  private static final String COMMON_NAME = "http://mb.gbif.org/iucn/common.json";
-  private static final String NARRATIVE = "http://mb.gbif.org/iucn/narrative.json";
+  private static final String VERSION = "https://apiv3.iucnredlist.org/api/v3/version";
+  private static final String SPECIES = "https://apiv3.iucnredlist.org/api/v3/species/id/{KEY}?token="+TOKEN;
+  private static final String CITATION = "https://apiv3.iucnredlist.org/api/v3/species/citation/id/{KEY}?token="+TOKEN;
+  private static final String COMMON_NAME = "https://apiv3.iucnredlist.org/api/v3/species/common_names/{NAME}?token="+TOKEN;
+  private static final String SYNONYM = "https://apiv3.iucnredlist.org/api/v3/species/synonym/{NAME}?token="+TOKEN;
+
+  private String version;
 
   public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 
-  /**
-   */
   @Override
   protected void parseData() throws Exception {
+    // IUCN Red List version, e.g. 2020-2
+    IucnVersion versionList = http.readJson(VERSION, IucnVersion.class);
+    version = versionList.version;
+
+    // Publication date of this checklist
     dataset.setPubDate(new Date());
 
     writer.addDefaultValue(GbifTerm.Description, DcTerm.language, Language.ENGLISH.getIso3LetterCode());
     writer.addDefaultValue(GbifTerm.Description, DcTerm.rightsHolder, "IUCN");
 
     // TODO: Page through all species records.
-    List<String> taxa = Lists.newArrayList("12392");
+    List<String> taxa = Lists.newArrayList("12392", "103636217", "75123278", "80231759");
+
 
     for (String taxonKey : taxa) {
-      String url = SPECIES.replace("{KEY}", taxonKey);
-      List<IucnSpecies> speciesList = http.readJsonResult(url, IucnSpecies.class);
+      LOG.info("Requesting taxon {}", taxonKey);
+      List<IucnSpecies> speciesList = http.readJsonResult(SPECIES.replace("{KEY}", taxonKey), IucnSpecies.class);
 
-      List<IucnCitation> citationList = http.readJsonResult(CITATION, IucnCitation.class);
-      String citation = DX_DOI.matcher(citationList.get(0).citation).replaceAll("https://doi.org/");
-
-      // Taxon.rights?
-      // Taxon.rightsHolder?
-
-      // License?
+      List<IucnCitation> citationList = http.readJsonResult(CITATION.replace("{KEY}", taxonKey), IucnCitation.class);
+      String citation = DX_DOI.matcher(citationList.get(0).citation).replaceAll("https://doi.org/")
+        .replace(" .Downloaded", ". Downloaded");
 
       for (IucnSpecies species : speciesList) {
+        species.authority = species.authority.replace("&amp;", "&");
+
         writer.newRecord(String.valueOf(species.taxonid));
         writer.addCoreColumn(DwcTerm.scientificName, species.scientific_name + ' ' + species.authority);
         writer.addCoreColumn(DwcTerm.kingdom, species.kingdom);
@@ -98,14 +106,15 @@ public class ArchiveBuilder extends AbstractBuilder {
         writer.addCoreColumn(DwcTerm.genus, species.genus);
         writer.addCoreColumn(DwcTerm.vernacularName, species.main_common_name);
         writer.addCoreColumn(DwcTerm.scientificNameAuthorship, species.authority);
-        writer.addCoreColumn(DwcTerm.namePublishedInYear, species.published_year);
         writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.ACCEPTED);
+        writer.addCoreColumn(DwcTerm.acceptedNameUsageID, species.taxonid);
         writer.addCoreColumn(DcTerm.bibliographicCitation, citation);
         writer.addCoreColumn(DcTerm.references, "https://apiv3.iucnredlist.org/api/v3/taxonredirect/" + species.taxonid);
 
         Map<Term, String> globalDistribution = new HashMap<>();
         globalDistribution.put(DwcTerm.locality, "Global");
         globalDistribution.put(IucnTerm.threatStatus, species.category);
+        // What about criteria? Population trend?
         switch (species.category) {
           case "EX":
           case "EW":
@@ -113,6 +122,7 @@ public class ArchiveBuilder extends AbstractBuilder {
             break;
 
           case "CR":
+          case "EN":
           case "VU":
           case "NT":
           case "DD":
@@ -129,9 +139,12 @@ public class ArchiveBuilder extends AbstractBuilder {
         }
         globalDistribution.put(DwcTerm.countryCode, null);
         globalDistribution.put(DwcTerm.establishmentMeans, null);
-        globalDistribution.put(DcTerm.source, citation);
+        globalDistribution.put(DcTerm.source, citation.replace(" .Downloaded", ". Downloaded"));
         writer.addExtensionRecord(GbifTerm.Distribution, globalDistribution);
 
+        /*
+         * Including the country information requires a permission waiver from the IUCN.
+         * (Email, mblissett/arodrigues/mgrosjean; 2020-09-10.)
         List<IucnCountry> countriesList = http.readJsonResult(COUNTRY, IucnCountry.class);
         for (IucnCountry country : countriesList) {
           Map<Term, String> countryDistribution = new HashMap<>();
@@ -155,16 +168,21 @@ public class ArchiveBuilder extends AbstractBuilder {
           countryDistribution.put(DcTerm.source, citation);
           writer.addExtensionRecord(GbifTerm.Distribution, countryDistribution);
         }
+         */
 
-        List<IucnCommonName> commonNameList = http.readJsonResult(COMMON_NAME, IucnCommonName.class);
+        String urlName = species.scientific_name.replace(" ", "%20");
+
+        List<IucnCommonName> commonNameList = http.readJsonResult(COMMON_NAME.replace("{NAME}", urlName), IucnCommonName.class);
         for (IucnCommonName commonName : commonNameList) {
           Map<Term, String> vernacularName = new HashMap<>();
           vernacularName.put(DcTerm.language, commonName.language);
           vernacularName.put(DwcTerm.vernacularName, commonName.taxonname);
-          vernacularName.put(DcTerm.source, citation);
           writer.addExtensionRecord(GbifTerm.VernacularName, vernacularName);
         }
 
+        /*
+         * Including the narrative requires a permission waiver from the IUCN.
+         * (Email, mblissett/arodrigues/mgrosjean; 2020-09-10.)
         List<IucnNarrative> narrativeList = http.readJsonResult(NARRATIVE, IucnNarrative.class);
         for (IucnNarrative narrative : narrativeList) {
           addDescription("general", narrative.taxonomicnotes, citation);
@@ -177,6 +195,25 @@ public class ArchiveBuilder extends AbstractBuilder {
           addDescription("conservation", narrative.conservationmeasures, citation);
           addDescription("use", narrative.usetrade, citation);
         }
+         */
+
+        // Synonyms make new records, so they must be last.
+        List<IucnSynonym> synonymList = http.readJsonResult(SYNONYM.replace("{NAME}", urlName), IucnSynonym.class);
+        int synonym_index = 0;
+        for (IucnSynonym synonym : synonymList) {
+          synonym_index++;
+
+          synonym.syn_authority = synonym.syn_authority.replace("&amp;", "&");
+
+          writer.newRecord(String.valueOf(species.taxonid) + "_" + synonym_index);
+          writer.addCoreColumn(DwcTerm.scientificName, synonym.synonym + ' ' + synonym.syn_authority);
+          writer.addCoreColumn(DwcTerm.kingdom, species.kingdom); // Assume synonym is same kingdom as accepted name
+          writer.addCoreColumn(DwcTerm.scientificNameAuthorship, synonym.syn_authority);
+          writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.SYNONYM);
+          writer.addCoreColumn(DwcTerm.acceptedNameUsageID, species.taxonid);
+        }
+
+        LOG.info("  Taxon {} ({}) with {} synonyms completed.", taxonKey, species.scientific_name, synonym_index);
       }
     }
   }
@@ -191,6 +228,10 @@ public class ArchiveBuilder extends AbstractBuilder {
       description.put(DcTerm.source, citation);
       writer.addExtensionRecord(GbifTerm.Description, description);
     }
+  }
+
+  public static class IucnVersion {
+    public String version;
   }
 
   public static class IucnSpecies {
@@ -245,6 +286,14 @@ public class ArchiveBuilder extends AbstractBuilder {
     public String language;
   }
 
+  public static class IucnSynonym {
+    public Long accepted_id;
+    public String accepted_name;
+    public String authority;
+    public String synonym;
+    public String syn_authority;
+  }
+
   public static class IucnNarrative {
     public Long species_id;
     public String taxonomicnotes;
@@ -258,31 +307,43 @@ public class ArchiveBuilder extends AbstractBuilder {
     public String usetrade;
   }
 
+  private String getCitation() {
+    return CITATION_FORMAT
+      .replace("{YEAR}", version.substring(0, 4))
+      .replace("{VERSION}", version)
+      .replace("{DL_DATE}", LocalDate.now(ZoneOffset.UTC).toString());
+  }
+
   @Override
   protected void addMetadata() {
-    // metadata
     dataset.setTitle(TITLE);
-    setCitation(CITATION);
+    dataset.setVersion(version);
+
+    setCitation(getCitation());
     setDescription("iucn/description.txt");
-    dataset.setRights("Unknown?");
+    dataset.setRights("https://www.iucnredlist.org/terms/terms-of-use");
     dataset.setHomepage(HOMEPAGE);
     dataset.setLogoUrl(LOGO);
-    Contact contact = new Contact();
-    contact.setType(ContactType.ORIGINATOR);
-    contact.setOrganization(CONTACT_ORG);
-//    contact.getAddress().add(CONTACT_ADDRESS);
-//    contact.getAddress().add(CONTACT_ADDRESS2);
-//    contact.setCity(CONTACT_CITY);
-//    contact.setPostalCode(CONTACT_ZIP);
-//    contact.setCountry(CONTACT_COUNTRY);
-//    contact.setFirstName(CONTACT_FIRST_NAME);
-//    contact.setLastName(CONTACT_LAST_NAME);
-//    contact.setPostalCode(CONTACT_POSITION);
-//    contact.getEmail().add(CONTACT_EMAIL);
-    addContact(contact);
+
+    Contact craig = new Contact();
+    craig.setType(ContactType.ADMINISTRATIVE_POINT_OF_CONTACT);
+    craig.setOrganization(CONTACT_ORG);
+    craig.setFirstName("Craig");
+    craig.setLastName("Hilton-Taylor");
+    craig.getEmail().add("Craig.HILTON-TAYLOR@iucn.org");
+    addContact(craig);
+
+    Contact ackbar = new Contact();
+    ackbar.setType(ContactType.TECHNICAL_POINT_OF_CONTACT);
+    ackbar.setOrganization(CONTACT_ORG);
+    ackbar.setFirstName("Ackbar");
+    ackbar.setLastName("Joolia");
+    ackbar.setPosition(Lists.newArrayList("Biodiversity Systems Manager"));
+    ackbar.getEmail().add("Ackbar.JOOLIA@iucn.org");
+    addContact(ackbar);
   }
 
   protected void addMetadataProvider() {
-    addContact("GBIF", "Matthew", "Blissett", "mblissett@gbif.org", ContactType.METADATA_AUTHOR);
+    addContact("GBIF", "Matthew", "Blissett", "mblissett@gbif.org", ContactType.PROGRAMMER);
   }
 }
