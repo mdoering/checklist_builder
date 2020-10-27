@@ -15,29 +15,42 @@
  */
 package de.doering.dwca.iucn;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.BuilderConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.api.vocabulary.TaxonomicStatus;
-import org.gbif.dwc.terms.*;
+import org.gbif.common.parsers.LanguageParser;
+import org.gbif.common.parsers.core.ParseResult;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.utils.file.CompressionUtil;
+import org.gbif.utils.file.FileUtils;
+import org.gbif.utils.file.tabular.TabularDataFileReader;
+import org.gbif.utils.file.tabular.TabularFiles;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
 public class ArchiveBuilder extends AbstractBuilder {
 
@@ -49,19 +62,78 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final String CITATION_FORMAT = "IUCN ({YEAR}). The IUCN Red List of Threatened Species. " +
     "Version {VERSION}. https://www.iucnredlist.org. Downloaded on {DL_DATE}. https://doi.org/10.15468/0qnb58";
 
-  public static final Pattern SPAN_ITALIC = Pattern.compile("<span style=\"font-style: italic;\">(.*?)</span>");
-  public static final Pattern SPAN_STRONG = Pattern.compile("<span style=\"font-weight: bold;\">(.*?)</span>");
-  public static final Pattern DX_DOI = Pattern.compile("https?://dx\\.doi\\.org/");
+  // This is a download from the IUCN Red List site, created using a search from https://www.iucnredlist.org/search
+  //
+  // Unfortunately, it seems not to be possible to link to the search.
+  // • Geographical Scope: Global
+  // • Include: Species; Subpopulations; Subspecies and varieties
+  // Then it is downloaded in "Search Summary" format, as the alternative download formats are restricted.
+  //
+  // Commit 97f9555cb58a9a57b88c5b57d8b0d71f895bceb4 used the IUCN API, which included the DOIs for
+  // each assessment.  These are unfortunately not included in the downloads.
+  private static final String DOWNLOAD = "https://hosted-datasets.gbif.org/datasets/iucn/redlist_species_data_565c8122-6fa3-497d-b873-9aa807a7bf05.zip";
+  private static final String VERSION_URL = "https://apiv3.iucnredlist.org/api/v3/version";
 
-  private ObjectMapper jsonMapper = new ObjectMapper();
-  // This is just the documentation/demo token.
-  private static final String TOKEN = "9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
+  // columns for taxonomy.csv
+  private static final int TAX_TAXON_ID = 0;
+  private static final int TAX_SCIENTIFIC_NAME = 1;
+  private static final int TAX_KINGDOM_NAME = 2;
+  private static final int TAX_PHYLUM_NAME = 3;
+  private static final int TAX_ORDER_NAME = 4;
+  private static final int TAX_CLASS_NAME = 5;
+  private static final int TAX_FAMILY_NAME = 6;
+  private static final int TAX_GENUS_NAME = 7;
+  private static final int TAX_SPECIES_NAME = 8;
+  private static final int TAX_INFRA_TYPE = 9;
+  private static final int TAX_INFRA_NAME = 10;
+  private static final int TAX_INFRA_AUTHORITY = 11;
+  private static final int TAX_SUBPOPULATION_NAME = 12;
+  private static final int TAX_AUTHORITY = 13;
+  private static final int TAX_TAXONOMIC_NOTES = 14;
+  private static final int TAX_COL_MIN = TAX_TAXONOMIC_NOTES;
 
-  private static final String VERSION = "https://apiv3.iucnredlist.org/api/v3/version";
-  private static final String SPECIES = "https://apiv3.iucnredlist.org/api/v3/species/id/{KEY}?token="+TOKEN;
-  private static final String CITATION = "https://apiv3.iucnredlist.org/api/v3/species/citation/id/{KEY}?token="+TOKEN;
-  private static final String COMMON_NAME = "https://apiv3.iucnredlist.org/api/v3/species/common_names/{NAME}?token="+TOKEN;
-  private static final String SYNONYM = "https://apiv3.iucnredlist.org/api/v3/species/synonym/{NAME}?token="+TOKEN;
+  // columns for assessments.csv
+  private static final int ASS_ASSESSMENT_ID = 0;
+  private static final int ASS_INTERNAL_TAXON_ID = 1;
+  private static final int ASS_SCIENTIFIC_NAME = 2;
+  private static final int ASS_REDLIST_CATEGORY = 3;
+  private static final int ASS_REDLIST_CRITERIA = 4;
+  private static final int ASS_YEAR_PUBLISHED = 5;
+  private static final int ASS_ASSESSMENT_DATE = 6;
+  private static final int ASS_CRITERIA_VERSION = 7;
+  private static final int ASS_LANGUAGE = 8;
+  private static final int ASS_RATIONALE = 9;
+  private static final int ASS_HABITAT = 10;
+  private static final int ASS_THREATS = 11;
+  private static final int ASS_POPULATION = 12;
+  private static final int ASS_POPULATION_TREND = 13;
+  private static final int ASS_RANGE = 14;
+  private static final int ASS_USE_TRADE = 15;
+  private static final int ASS_SYSTEMS = 16;
+  private static final int ASS_CONSERVATION_ACTIONS = 17;
+  private static final int ASS_REALM = 18;
+  private static final int ASS_YEAR_LAST_SEEN = 19;
+  private static final int ASS_POSSIBLY_EXTINCT = 20;
+  private static final int ASS_POSSIBLY_EXTINCT_IN_THE_WILD = 21;
+  private static final int ASS_SCOPES = 22;
+  private static final int ASS_COL_MIN = ASS_SCOPES;
+
+  // columns for common_names.csv
+  private static final int COM_INTERNAL_TAXON_ID = 0;
+  private static final int COM_SCIENTIFIC_NAME = 1;
+  private static final int COM_NAME = 2;
+  private static final int COM_LANGUAGE = 3;
+  private static final int COM_MAIN = 4;
+
+  // columns for synonyms.csv
+  private static final int SYN_INTERNAL_TAXON_ID = 0;
+  private static final int SYN_SCIENTIFIC_NAME = 1;
+  private static final int SYN_NAME = 2;
+  private static final int SYN_GENUS_NAME = 3;
+  private static final int SYN_SPECIES_NAME = 4;
+  private static final int SYN_SPECIES_AUTHOR = 5;
+  private static final int SYN_INFRA_TYPE = 6;
+  private static final int SYN_INFRA_RANK_AUTHOR = 7;
 
   private String version;
 
@@ -72,161 +144,130 @@ public class ArchiveBuilder extends AbstractBuilder {
   @Override
   protected void parseData() throws Exception {
     // IUCN Red List version, e.g. 2020-2
-    IucnVersion versionList = http.readJson(VERSION, IucnVersion.class);
+    IucnVersion versionList = http.readJson(VERSION_URL, IucnVersion.class);
     version = versionList.version;
 
     // Publication date of this checklist
     dataset.setPubDate(new Date());
 
-    writer.addDefaultValue(GbifTerm.Description, DcTerm.language, Language.ENGLISH.getIso3LetterCode());
-    writer.addDefaultValue(GbifTerm.Description, DcTerm.rightsHolder, "IUCN");
+    final File tmp = FileUtils.createTempDir();
+    tmp.deleteOnExit();
 
-    // TODO: Page through all species records.
-    List<String> taxa = Lists.newArrayList("12392", "103636217", "75123278", "80231759");
+    final File zip = File.createTempFile("iucn", ".zip");
+    zip.deleteOnExit();
+    http.download(DOWNLOAD, zip);
+    List<File> files = CompressionUtil.unzipFile(tmp, zip);
 
+    // The simple_summary.csv file was probably sufficient, but isn't used.
+    // Optional<File> simple_summary = files.stream().filter(f -> f.getName().equals("simple_summary.csv")).findFirst();
 
-    for (String taxonKey : taxa) {
-      LOG.info("Requesting taxon {}", taxonKey);
-      List<IucnSpecies> speciesList = http.readJsonResult(SPECIES.replace("{KEY}", taxonKey), IucnSpecies.class);
+    // Index assessments by taxon key
+    Multimap<String, List<String>> assessmentsMap =
+      indexByColumn(files.stream().filter(f -> f.getName().equals("assessments.csv")).findFirst().get(), COM_INTERNAL_TAXON_ID);
 
-      List<IucnCitation> citationList = http.readJsonResult(CITATION.replace("{KEY}", taxonKey), IucnCitation.class);
-      String citation = DX_DOI.matcher(citationList.get(0).citation).replaceAll("https://doi.org/")
-        .replace(" .Downloaded", ". Downloaded");
+    // Index common names by taxon key
+    Multimap<String, List<String>> commonNamesMap =
+      indexByColumn(files.stream().filter(f -> f.getName().equals("common_names.csv")).findFirst().get(), COM_INTERNAL_TAXON_ID);
 
-      for (IucnSpecies species : speciesList) {
-        species.authority = species.authority.replace("&amp;", "&");
+    // Index synonyms by taxon key
+    Multimap<String, List<String>> synonymsMap =
+      indexByColumn(files.stream().filter(f -> f.getName().equals("synonyms.csv")).findFirst().get(), SYN_INTERNAL_TAXON_ID);
 
-        writer.newRecord(String.valueOf(species.taxonid));
-        writer.addCoreColumn(DwcTerm.scientificName, species.scientific_name + ' ' + species.authority);
-        writer.addCoreColumn(DwcTerm.kingdom, species.kingdom);
-        writer.addCoreColumn(DwcTerm.phylum, species.phylum);
-        writer.addCoreColumn(DwcTerm.class_, species.class_);
-        writer.addCoreColumn(DwcTerm.order, species.order);
-        writer.addCoreColumn(DwcTerm.family, species.family);
-        writer.addCoreColumn(DwcTerm.genus, species.genus);
-        writer.addCoreColumn(DwcTerm.vernacularName, species.main_common_name);
-        writer.addCoreColumn(DwcTerm.scientificNameAuthorship, species.authority);
-        writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.ACCEPTED);
-        writer.addCoreColumn(DwcTerm.acceptedNameUsageID, species.taxonid);
-        writer.addCoreColumn(DcTerm.bibliographicCitation, citation);
-        writer.addCoreColumn(DcTerm.references, "https://apiv3.iucnredlist.org/api/v3/taxonredirect/" + species.taxonid);
+    // Iterate through the taxonomy
+    Optional<File> taxonomy = files.stream().filter(f -> f.getName().equals("taxonomy.csv")).findFirst();
+    TabularDataFileReader<List<String>> reader = TabularFiles.newTabularFileReader(
+      new InputStreamReader(new FileInputStream(taxonomy.get()), "UTF-8"),
+      ',', "\n", '"', true
+    );
 
+    List<String> taxon;
+    while ((taxon = reader.read()) != null) {
+      final String taxonKey = taxon.get(TAX_TAXON_ID);
+      final String authority = taxon.get(TAX_AUTHORITY).replace("&amp;", "&");
+
+      writer.newRecord(taxonKey);
+      writer.addCoreColumn(DwcTerm.scientificName, taxon.get(TAX_SCIENTIFIC_NAME) + ' ' + authority);
+      writer.addCoreColumn(DwcTerm.kingdom, taxon.get(TAX_KINGDOM_NAME));
+      writer.addCoreColumn(DwcTerm.phylum, taxon.get(TAX_PHYLUM_NAME));
+      writer.addCoreColumn(DwcTerm.class_, taxon.get(TAX_CLASS_NAME));
+      writer.addCoreColumn(DwcTerm.order, taxon.get(TAX_ORDER_NAME));
+      writer.addCoreColumn(DwcTerm.family, taxon.get(TAX_FAMILY_NAME));
+      writer.addCoreColumn(DwcTerm.genus, taxon.get(TAX_GENUS_NAME));
+      writer.addCoreColumn(DwcTerm.specificEpithet, taxon.get(TAX_SPECIES_NAME));
+      writer.addCoreColumn(DwcTerm.scientificNameAuthorship, authority);
+      writer.addCoreColumn(DwcTerm.taxonRank, taxon.get(TAX_INFRA_TYPE));
+      writer.addCoreColumn(DwcTerm.infraspecificEpithet, TAX_INFRA_NAME);
+      writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.ACCEPTED);
+      writer.addCoreColumn(DwcTerm.acceptedNameUsageID, taxonKey);
+      writer.addCoreColumn(DcTerm.references, "https://apiv3.iucnredlist.org/api/v3/taxonredirect/" + taxonKey);
+
+      for (List<String> assessment : assessmentsMap.get(taxonKey)) {
         Map<Term, String> globalDistribution = new HashMap<>();
         globalDistribution.put(DwcTerm.locality, "Global");
-        globalDistribution.put(IucnTerm.threatStatus, species.category);
+        globalDistribution.put(IucnTerm.threatStatus, assessment.get(ASS_REDLIST_CATEGORY));
         // What about criteria? Population trend?
-        switch (species.category) {
-          case "EX":
-          case "EW":
+        switch (assessment.get(ASS_REDLIST_CATEGORY)) {
+          case "Extinct":
+          case "Extinct in the Wild":
             globalDistribution.put(DwcTerm.occurrenceStatus, "Absent");
             break;
 
-          case "CR":
-          case "EN":
-          case "VU":
-          case "NT":
-          case "DD":
-          case "LC":
+          case "Critically Endangered":
+          case "Endangered":
+          case "Vulnerable":
+          case "Near Threatened":
+          case "Data Deficient":
+          case "Least Concern":
+          case "Lower Risk/conservation dependent":
+          case "Lower Risk/near threatened":
+          case "Lower Risk/least concern":
             globalDistribution.put(DwcTerm.occurrenceStatus, "Present");
             break;
 
-          case "NE":
+          case "Not Evaluated": // Not used.
             globalDistribution.put(DwcTerm.occurrenceStatus, "Unknown");
             break;
 
           default:
-            throw new Exception("Unknown species.category "+species.category+" on "+species.taxonid);
+            throw new Exception("Unknown assessment category " + assessment.get(ASS_REDLIST_CATEGORY) + " on " + taxonKey);
         }
         globalDistribution.put(DwcTerm.countryCode, null);
         globalDistribution.put(DwcTerm.establishmentMeans, null);
-        globalDistribution.put(DcTerm.source, citation.replace(" .Downloaded", ". Downloaded"));
         writer.addExtensionRecord(GbifTerm.Distribution, globalDistribution);
-
-        /*
-         * Including the country information requires a permission waiver from the IUCN.
-         * (Email, mblissett/arodrigues/mgrosjean; 2020-09-10.)
-        List<IucnCountry> countriesList = http.readJsonResult(COUNTRY, IucnCountry.class);
-        for (IucnCountry country : countriesList) {
-          Map<Term, String> countryDistribution = new HashMap<>();
-          countryDistribution.put(DwcTerm.countryCode, country.code);
-          countryDistribution.put(DwcTerm.locality, country.country);
-          countryDistribution.put(DwcTerm.occurrenceStatus, country.distribution_code);
-          countryDistribution.put(DwcTerm.establishmentMeans, country.origin);
-          switch (country.distribution_code) {
-            case "Regionally Extinct":
-              countryDistribution.put(IucnTerm.threatStatus, "EX"); // TODO: Set to regionally extinct (RE)
-              countryDistribution.put(DwcTerm.occurrenceStatus, "Extinct");
-              break;
-            case "Native":
-              break;
-            case "Reintroduced":
-              countryDistribution.put(DwcTerm.occurrenceStatus, "Present");
-              break;
-            default:
-              System.out.println("Unknown distribution_code for " + species.taxonid + "“" + country.distribution_code + "”.");
-          }
-          countryDistribution.put(DcTerm.source, citation);
-          writer.addExtensionRecord(GbifTerm.Distribution, countryDistribution);
-        }
-         */
-
-        String urlName = species.scientific_name.replace(" ", "%20");
-
-        List<IucnCommonName> commonNameList = http.readJsonResult(COMMON_NAME.replace("{NAME}", urlName), IucnCommonName.class);
-        for (IucnCommonName commonName : commonNameList) {
-          Map<Term, String> vernacularName = new HashMap<>();
-          vernacularName.put(DcTerm.language, commonName.language);
-          vernacularName.put(DwcTerm.vernacularName, commonName.taxonname);
-          writer.addExtensionRecord(GbifTerm.VernacularName, vernacularName);
-        }
-
-        /*
-         * Including the narrative requires a permission waiver from the IUCN.
-         * (Email, mblissett/arodrigues/mgrosjean; 2020-09-10.)
-        List<IucnNarrative> narrativeList = http.readJsonResult(NARRATIVE, IucnNarrative.class);
-        for (IucnNarrative narrative : narrativeList) {
-          addDescription("general", narrative.taxonomicnotes, citation);
-          addDescription("conservation", narrative.rationale, citation);
-          addDescription("distribution", narrative.geographicrange, citation);
-          addDescription("population", narrative.population, citation);
-          // addDescription(, narrative.populationtrend, citation); Single word like "increasing"
-          addDescription("habitat", narrative.habitat, citation);
-          addDescription("threats", narrative.threats, citation);
-          addDescription("conservation", narrative.conservationmeasures, citation);
-          addDescription("use", narrative.usetrade, citation);
-        }
-         */
-
-        // Synonyms make new records, so they must be last.
-        List<IucnSynonym> synonymList = http.readJsonResult(SYNONYM.replace("{NAME}", urlName), IucnSynonym.class);
-        int synonym_index = 0;
-        for (IucnSynonym synonym : synonymList) {
-          synonym_index++;
-
-          synonym.syn_authority = synonym.syn_authority.replace("&amp;", "&");
-
-          writer.newRecord(String.valueOf(species.taxonid) + "_" + synonym_index);
-          writer.addCoreColumn(DwcTerm.scientificName, synonym.synonym + ' ' + synonym.syn_authority);
-          writer.addCoreColumn(DwcTerm.kingdom, species.kingdom); // Assume synonym is same kingdom as accepted name
-          writer.addCoreColumn(DwcTerm.scientificNameAuthorship, synonym.syn_authority);
-          writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.SYNONYM);
-          writer.addCoreColumn(DwcTerm.acceptedNameUsageID, species.taxonid);
-        }
-
-        LOG.info("  Taxon {} ({}) with {} synonyms completed.", taxonKey, species.scientific_name, synonym_index);
       }
-    }
-  }
 
-  private void addDescription(String type, String descr, String citation) throws IOException {
-    if (!Strings.isNullOrEmpty(descr)) {
-      Map<Term, String> description = new HashMap<>();
-      String cleanDescr = SPAN_ITALIC.matcher(descr).replaceAll("<i>$1</i>");
-      cleanDescr = SPAN_STRONG.matcher(cleanDescr).replaceAll("<strong>$1</strong>");
-      description.put(DcTerm.description, cleanDescr);
-      description.put(DcTerm.type, type);
-      description.put(DcTerm.source, citation);
-      writer.addExtensionRecord(GbifTerm.Description, description);
+      for (List<String> commonName : commonNamesMap.get(taxonKey)) {
+        Map<Term, String> vernacularName = new HashMap<>();
+
+        String language = commonName.get(COM_LANGUAGE);
+        ParseResult<Language> parsedLanguage = LanguageParser.getInstance().parse(language);
+        if (parsedLanguage.isSuccessful()) {
+          vernacularName.put(DcTerm.language, parsedLanguage.getPayload().getIso3LetterCode());
+        } else {
+          vernacularName.put(DcTerm.language, language);
+        }
+        vernacularName.put(DwcTerm.vernacularName, commonName.get(COM_NAME));
+        vernacularName.put(GbifTerm.isPreferredName, commonName.get(COM_MAIN));
+        writer.addExtensionRecord(GbifTerm.VernacularName, vernacularName);
+      }
+
+      // Synonyms make new records, so they must be last.
+      int synonym_index = 0;
+      for (List<String> synonym : synonymsMap.get(taxonKey)) {
+        synonym_index++;
+
+        String synonymName = synonym.get(SYN_NAME).replace("&amp;", "&");
+        String synonymAuthority = synonym.get(SYN_SPECIES_AUTHOR).replace("&amp;", "&");
+
+        writer.newRecord(String.valueOf(taxonKey) + "_" + synonym_index);
+        writer.addCoreColumn(DwcTerm.scientificName, synonymName);
+        writer.addCoreColumn(DwcTerm.kingdom, taxon.get(TAX_KINGDOM_NAME)); // Assume synonym is same kingdom as accepted name
+        writer.addCoreColumn(DwcTerm.scientificNameAuthorship, synonymAuthority);
+        writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.SYNONYM);
+        writer.addCoreColumn(DwcTerm.acceptedNameUsageID, taxonKey);
+      }
+
+      LOG.info("  Taxon {} ({}) with {} synonyms completed.", taxonKey, taxon.get(TAX_SCIENTIFIC_NAME), synonym_index);
     }
   }
 
@@ -234,84 +275,28 @@ public class ArchiveBuilder extends AbstractBuilder {
     public String version;
   }
 
-  public static class IucnSpecies {
-    public Long taxonid;
-    public String scientific_name;
-    public String kingdom;
-    public String phylum;
-    @JsonProperty("class")
-    public String class_;
-    public String order;
-    public String family;
-    public String genus;
-    public String main_common_name;
-    public String authority;
-    public Integer published_year;
-    public String assessment_date;
-    public String category;
-    public String criteria;
-    public String population_trend;
-    public Boolean marine_system;
-    public Boolean freshwater_system;
-    public Boolean terrestrial_system;
-    public String assessor;
-    public String reviewer;
-    public String aoo_km2;
-    public String eoo_km2;
-    public String elevation_upper;
-    public String elevation_lower;
-    public String depth_upper;
-    public String depth_lower;
-    public String errata_flag;
-    public String errata_reason;
-    public String amended_flag;
-    public String amended_reason;
-  }
-
-  public static class IucnCitation {
-    public String citation;
-  }
-
-  public static class IucnCountry {
-    public String code;
-    public String country;
-    public String presence;
-    public String origin;
-    public String distribution_code;
-  }
-
-  public static class IucnCommonName {
-    public String taxonname;
-    public Boolean primary;
-    public String language;
-  }
-
-  public static class IucnSynonym {
-    public Long accepted_id;
-    public String accepted_name;
-    public String authority;
-    public String synonym;
-    public String syn_authority;
-  }
-
-  public static class IucnNarrative {
-    public Long species_id;
-    public String taxonomicnotes;
-    public String rationale;
-    public String geographicrange;
-    public String population;
-    public String populationtrend;
-    public String habitat;
-    public String threats;
-    public String conservationmeasures;
-    public String usetrade;
-  }
-
   private String getCitation() {
     return CITATION_FORMAT
       .replace("{YEAR}", version.substring(0, 4))
       .replace("{VERSION}", version)
       .replace("{DL_DATE}", LocalDate.now(ZoneOffset.UTC).toString());
+  }
+
+  // Index a CSV file by a column.
+  private Multimap<String, List<String>> indexByColumn(File source, int indexColumn) throws IOException, ParseException {
+    Multimap<String, List<String>> map = HashMultimap.create();
+
+    TabularDataFileReader<List<String>> reader = TabularFiles.newTabularFileReader(
+      new InputStreamReader(new FileInputStream(source), "UTF-8"),
+      ',', "\n", '"', true
+    );
+
+    List<String> row;
+    while ((row = reader.read()) != null) {
+      map.put(row.get(indexColumn), row);
+    }
+
+    return map;
   }
 
   @Override
