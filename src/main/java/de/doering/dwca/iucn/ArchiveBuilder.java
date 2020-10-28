@@ -15,6 +15,7 @@
  */
 package de.doering.dwca.iucn;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -66,7 +67,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   //
   // Unfortunately, it seems not to be possible to link to the search.
   // • Geographical Scope: Global
-  // • Include: Species; Subpopulations; Subspecies and varieties
+  // • Include: Species; Subspecies and varieties
   // Then it is downloaded in "Search Summary" format, as the alternative download formats are restricted.
   //
   // Commit 97f9555cb58a9a57b88c5b57d8b0d71f895bceb4 used the IUCN API, which included the DOIs for
@@ -163,7 +164,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
     // Index assessments by taxon key
     Multimap<String, List<String>> assessmentsMap =
-      indexByColumn(files.stream().filter(f -> f.getName().equals("assessments.csv")).findFirst().get(), COM_INTERNAL_TAXON_ID);
+      indexByColumn(files.stream().filter(f -> f.getName().equals("assessments.csv")).findFirst().get(), ASS_INTERNAL_TAXON_ID);
 
     // Index common names by taxon key
     Multimap<String, List<String>> commonNamesMap =
@@ -183,6 +184,13 @@ public class ArchiveBuilder extends AbstractBuilder {
     List<String> taxon;
     while ((taxon = reader.read()) != null) {
       final String taxonKey = taxon.get(TAX_TAXON_ID);
+
+      // Skip subpopulation assessments, in case these have been included in the download
+      if (!Strings.isNullOrEmpty(taxon.get(TAX_SUBPOPULATION_NAME))) {
+        LOG.info("Skipping {}, which is a subpopulation taxon", taxonKey);
+        continue;
+      }
+
       final String authority = taxon.get(TAX_AUTHORITY).replace("&amp;", "&");
 
       writer.newRecord(taxonKey);
