@@ -1,13 +1,13 @@
 package de.doering.dwca.ioc;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import com.google.common.io.Resources;
 import org.junit.Test;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 import static org.junit.Assert.assertEquals;
 

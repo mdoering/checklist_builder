@@ -180,7 +180,7 @@ public class ArchiveBuilder extends AbstractBuilder {
             Row row = iter.next();
             String abbrev = col(row, COL_REF_ABBREV);
             if (StringUtils.isBlank(abbrev)) {
-                LOG.warn("Suspicous reference with empty citation abbreviation, ignore line {}", row.getRowNum());
+                LOG.debug("Suspicous reference with empty citation abbreviation, ignore line {}", row.getRowNum());
                 continue;
             }
             String refCitation = buildCitation(col(row, COL_REF_AUTHOR), col(row, COL_REF_YEAR), col(row, COL_REF_TITLE), col(row, COL_REF_JOURNAL));
