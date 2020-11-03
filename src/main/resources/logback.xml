@@ -37,6 +37,9 @@
   <logger name="org.apache.http.wire" level="DEBUG"/>
   -->
 
+  <logger name="org.gbif.common.parsers.LanguageParser" level="ERROR"/>
+  <logger name="org.gbif.dwc.terms.TermFactory" level="WARN"/>
+
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
   </root>
