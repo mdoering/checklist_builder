@@ -35,7 +35,7 @@
     <logback.version>1.0.13</logback.version>
     <mockito.version>1.8.5</mockito.version>
     <name-parser.version>2.17</name-parser.version>
-    <poi.version>3.12</poi.version>
+    <poi.version>4.1.2</poi.version>
     <postgresql.version>42.2.16.jre7</postgresql.version>
     <slf4j.version>1.7.21</slf4j.version>
     <sqllite.version>3.32.3.2</sqllite.version>
