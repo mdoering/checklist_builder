@@ -77,20 +77,37 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   public static final Pattern DX_DOI = Pattern.compile("https?://dx\\.doi\\.org/");
 
-  // These are two downloads from the IUCN Red List site, created using searches from https://www.iucnredlist.org/search
+  // These are five downloads from the IUCN Red List site, created using searches from https://www.iucnredlist.org/search
   //
-  // The two searches have
+  // The are searches have
   // • Geographical Scope: Global
   // • Include: Species; Subspecies and varieties
   // • Taxonomy:
-  //   • Everything except Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=00b3c1db-8c63-46a2-9ca6-b517bcf577f2
-  //   • Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=c7a8b5ed-c6cf-4151-836a-39b3ecb31784
+  //   • Chromista, Fungi, Plantae except Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=1ac1a42d-9ae2-4e45-8f4f-f080f16dc845
+  //   • Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=b720570e-65cd-41c6-bf25-3717d9662e33
+  //   • Animalia except Chordata: https://www.iucnredlist.org/search?dl=true&permalink=7357f488-c1e4-47bb-b11d-80130b5f4197
+  //   • Chordata except Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=2eed7d97-fcf6-4c5c-80da-b99ee12733f1
+  //   • Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=97f3596b-30ec-47f0-9abb-1f895d2c59f9
   // Then it is downloaded in "Search Results" format.  Splitting the birds in two is necessary
-  // to enable use of the "Search Results" format.
+  // to enable use of the "Search Results" format, and splitting everything else into parts is
+  // needed to avoid overwhelming the IUCN service — without this, dois.txt is usually blank.
+  //
+  // These searches are for the 2020-3 Red List release.  The next release might have different phyla,
+  // classes etc, so they might need to be checked.  (If the bug isn't fixed.  Even if it is fixed,
+  // we were told it was necessary to do a Passeriformes + everything-else downloads to avoid a
+  // different limitation.)
+  //
+  // Expected total results
+  private static final int EXPECTED_TOTAL = 131_385;
   //
   // The downloads are stored in a private location in accordance with the IUCN terms and conditions.
-  private static final String DOWNLOAD_1 = "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_002cb0d2-af95-4875-9014-668ac1266396.zip";
-  private static final String DOWNLOAD_2 = "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_db89a551-13d9-4ed9-910d-9e5f10b1f228.zip"; // Passeriformes
+  private static final String[] DOWNLOADS = new String[]{
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_dfef9e31-4f2d-4082-a8c6-39339d1a2454.zip", // Chromista, Fungi, Plantae except Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_6fc42555-01d2-4066-9270-679f72fd4cd9.zip", // Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_f4a20abc-de1a-4441-ae3f-ecced4ca6b50.zip", // Animalia except Chordata
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_e64d46d0-484f-41a9-a479-44459a61d284.zip", // Chordata except Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_f75dd422-5f9f-4cd0-bca3-007e1bb62ae9.zip" // Passeriformes
+  };
 
   private static final String VERSION_URL = "https://apiv3.iucnredlist.org/api/v3/version";
 
@@ -151,6 +168,15 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int DOI_INTERNAL_TAXON_ID = 2;
   private static final int DOI_DOI = 3;
 
+  // columns for references.csv
+  private static final int REF_ASSESSMENT_ID = 0;
+  private static final int REF_INTERNAL_TAXON_ID = 1;
+  private static final int REF_SCIENTIFIC_NAME = 2;
+  private static final int REF_AUTHOR = 3;
+  private static final int REF_CITATION = 4;
+  private static final int REF_YEAR = 5;
+  private static final int REF_TITLE = 6;
+
   // columns for synonyms.csv
   private static final int SYN_INTERNAL_TAXON_ID = 0;
   private static final int SYN_SCIENTIFIC_NAME = 1;
@@ -177,7 +203,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     dataset.setPubDate(new Date());
 
     int count = 0;
-    for (String downloadFile : new String[]{DOWNLOAD_1, DOWNLOAD_2}) {
+    for (String downloadFile : DOWNLOADS) {
       final File tmp = FileUtils.createTempDir();
       tmp.deleteOnExit();
 
@@ -201,6 +227,10 @@ public class ArchiveBuilder extends AbstractBuilder {
       Multimap<String, List<String>> doisMap =
         indexByColumn(files.stream().filter(f -> f.getName().equals("dois.csv")).findFirst().get(), DOI_INTERNAL_TAXON_ID);
 
+      // Index references by taxon key
+      Multimap<String, List<String>> referencesMap =
+        indexByColumn(files.stream().filter(f -> f.getName().equals("references.csv")).findFirst().get(), REF_INTERNAL_TAXON_ID);
+
       // Index synonyms by taxon key
       Multimap<String, List<String>> synonymsMap =
         indexByColumn(files.stream().filter(f -> f.getName().equals("synonyms.csv")).findFirst().get(), SYN_INTERNAL_TAXON_ID);
@@ -222,9 +252,15 @@ public class ArchiveBuilder extends AbstractBuilder {
           continue;
         }
 
+        String reference = null;
+        for (List<String> ref : referencesMap.get(taxonKey)) {
+          reference = ref.get(REF_CITATION);
+        }
+        assert (reference != null);
+
         String citation = null;
         for (List<String> doi : doisMap.get(taxonKey)) {
-          citation = DX_DOI.matcher(doi.get(DOI_DOI)).replaceAll("https://doi.org/");
+          String formattedDoi = reference + " " + DX_DOI.matcher(doi.get(DOI_DOI)).replaceAll("https://doi.org/");
         }
         assert (citation != null);
 
@@ -327,7 +363,11 @@ public class ArchiveBuilder extends AbstractBuilder {
       }
 
     }
-    LOG.info("Processed {} taxa from the IUCN downloads", count);
+    if (count != EXPECTED_TOTAL) {
+      LOG.info("Processed {} taxa (as expected) from the IUCN downloads", count);
+    } else {
+      LOG.error("Total does not match: processed {} taxa from the IUCN downloads, but expected {}", count, EXPECTED_TOTAL);
+    }
   }
 
   public static class IucnVersion {
@@ -391,6 +431,14 @@ public class ArchiveBuilder extends AbstractBuilder {
   }
 
   protected void addMetadataProvider() {
-    addContact("GBIF", "Matthew", "Blissett", "mblissett@gbif.org", ContactType.PROGRAMMER);
+    Contact matthew = new Contact();
+    matthew.setType(ContactType.PROGRAMMER);
+    matthew.setOrganization("GBIF");
+    matthew.setFirstName("Matthew");
+    matthew.setLastName("Blissett");
+    matthew.setPosition(Lists.newArrayList("Software Developer"));
+    matthew.getEmail().add("mblissett@gbif.org");
+    matthew.addUserId("https://orcid.org/", "0000-0003-0623-6682");
+    addContact(matthew);
   }
 }
