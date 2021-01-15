@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.BuilderConfig;
 import org.gbif.api.model.registry.Contact;
@@ -47,6 +48,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -231,9 +233,10 @@ public class ArchiveBuilder extends AbstractBuilder {
       Multimap<String, List<String>> referencesMap =
         indexByColumn(files.stream().filter(f -> f.getName().equals("references.csv")).findFirst().get(), REF_INTERNAL_TAXON_ID);
 
-      // Index synonyms by taxon key
+      // Index synonyms by taxon key, sorting by name + author + infraAuthor.
+      Comparator<List<String>> synonymComparator = Comparator.comparing(o -> o.get(SYN_NAME) + o.get(SYN_SPECIES_AUTHOR) + o.get(SYN_INFRA_RANK_AUTHOR));
       Multimap<String, List<String>> synonymsMap =
-        indexByColumn(files.stream().filter(f -> f.getName().equals("synonyms.csv")).findFirst().get(), SYN_INTERNAL_TAXON_ID);
+        indexByColumn(files.stream().filter(f -> f.getName().equals("synonyms.csv")).findFirst().get(), SYN_INTERNAL_TAXON_ID, synonymComparator);
 
       // Iterate through the taxonomy
       Optional<File> taxonomy = files.stream().filter(f -> f.getName().equals("taxonomy.csv")).findFirst();
@@ -260,7 +263,7 @@ public class ArchiveBuilder extends AbstractBuilder {
 
         String citation = null;
         for (List<String> doi : doisMap.get(taxonKey)) {
-          String formattedDoi = reference + " " + DX_DOI.matcher(doi.get(DOI_DOI)).replaceAll("https://doi.org/");
+          citation = reference + " " + DX_DOI.matcher(doi.get(DOI_DOI)).replaceAll("https://doi.org/");
         }
         assert (citation != null);
 
@@ -382,9 +385,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   }
 
   // Index a CSV file by a column.
-  private Multimap<String, List<String>> indexByColumn(File source, int indexColumn) throws IOException, ParseException {
-    Multimap<String, List<String>> map = HashMultimap.create();
-
+  private Multimap<String, List<String>> indexByColumn(File source, int indexColumn, Multimap<String, List<String>> map) throws IOException, ParseException {
     TabularDataFileReader<List<String>> reader = TabularFiles.newTabularFileReader(
       new InputStreamReader(new FileInputStream(source), "UTF-8"),
       ',', "\n", '"', true
@@ -396,6 +397,18 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
 
     return map;
+  }
+
+  // Index a CSV file by a column.
+  private Multimap<String, List<String>> indexByColumn(File source, int indexColumn) throws IOException, ParseException {
+    Multimap<String, List<String>> map = HashMultimap.create();
+    return indexByColumn(source, indexColumn, map);
+  }
+
+  // Index a CSV file by a column, sorted using the comparator
+  private Multimap<String, List<String>> indexByColumn(File source, int indexColumn, Comparator<List<String>> comparator) throws IOException, ParseException {
+    Multimap<String, List<String>> map = MultimapBuilder.hashKeys().treeSetValues(comparator).build();
+    return indexByColumn(source, indexColumn, map);
   }
 
   @Override
