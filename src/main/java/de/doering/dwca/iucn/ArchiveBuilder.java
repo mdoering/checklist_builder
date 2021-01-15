@@ -81,15 +81,18 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   // These are five downloads from the IUCN Red List site, created using searches from https://www.iucnredlist.org/search
   //
+  // They are "Search Results" downloads, but with the download options under the account profile
+  // editied to add additional tables: common names, credits, references, synonyms, threats, DOIs.
+  //
   // The are searches have
   // • Geographical Scope: Global
   // • Include: Species; Subspecies and varieties
   // • Taxonomy:
-  //   • Chromista, Fungi, Plantae except Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=1ac1a42d-9ae2-4e45-8f4f-f080f16dc845
-  //   • Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=b720570e-65cd-41c6-bf25-3717d9662e33
-  //   • Animalia except Chordata: https://www.iucnredlist.org/search?dl=true&permalink=7357f488-c1e4-47bb-b11d-80130b5f4197
-  //   • Chordata except Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=2eed7d97-fcf6-4c5c-80da-b99ee12733f1
-  //   • Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=97f3596b-30ec-47f0-9abb-1f895d2c59f9
+  //   • Chromista, Fungi, Plantae except Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=ec87b4a8-ae17-456d-b7b0-34c2401e0d49
+  //   • Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=774a66fc-ab93-4f38-b7cf-be12e3991867
+  //   • Animalia except Chordata: https://www.iucnredlist.org/search?dl=true&permalink=7a668685-6d45-456e-bf20-e68206970be2
+  //   • Chordata except Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=1975aa7a-d2df-44fc-846b-b9dcb22da748
+  //   • Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=4bde9672-b4c3-4cd3-b082-cad5070cc0a0
   // Then it is downloaded in "Search Results" format.  Splitting the birds in two is necessary
   // to enable use of the "Search Results" format, and splitting everything else into parts is
   // needed to avoid overwhelming the IUCN service — without this, dois.txt is usually blank.
@@ -104,11 +107,11 @@ public class ArchiveBuilder extends AbstractBuilder {
   //
   // The downloads are stored in a private location in accordance with the IUCN terms and conditions.
   private static final String[] DOWNLOADS = new String[]{
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_dfef9e31-4f2d-4082-a8c6-39339d1a2454.zip", // Chromista, Fungi, Plantae except Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_6fc42555-01d2-4066-9270-679f72fd4cd9.zip", // Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_f4a20abc-de1a-4441-ae3f-ecced4ca6b50.zip", // Animalia except Chordata
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_e64d46d0-484f-41a9-a479-44459a61d284.zip", // Chordata except Passeriformes
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_f75dd422-5f9f-4cd0-bca3-007e1bb62ae9.zip" // Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_9a32a8dd-aeb8-4ac0-9d3d-0f47b27c3dcf.zip", // Chromista, Fungi, Plantae except Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_a638c56d-904a-4f9c-8b4c-49e4de32af0b.zip", // Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_f2d86ced-7c0d-42fe-82e3-57dae084b887.zip", // Animalia except Chordata
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_136ab282-b2d0-485d-ae60-0439f3407ae3.zip", // Chordata except Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_dad823f0-2d30-49d5-b521-e43082da214b.zip" // Passeriformes
   };
 
   private static final String VERSION_URL = "https://apiv3.iucnredlist.org/api/v3/version";
@@ -179,6 +182,16 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int REF_YEAR = 5;
   private static final int REF_TITLE = 6;
 
+  // columns for credits.csv
+  private static final int CRE_ASSESSMENT_ID = 0;
+  private static final int CRE_INTERNAL_TAXON_ID = 1;
+  private static final int CRE_SCIENTIFIC_NAME = 2;
+  private static final int CRE_TYPE = 3;
+  private static final int CRE_TEXT = 4;
+  private static final int CRE_FULL = 5;
+  private static final int CRE_VALUE = 6;
+  private static final int CRE_ORDER = 7;
+
   // columns for synonyms.csv
   private static final int SYN_INTERNAL_TAXON_ID = 0;
   private static final int SYN_SCIENTIFIC_NAME = 1;
@@ -233,6 +246,10 @@ public class ArchiveBuilder extends AbstractBuilder {
       Multimap<String, List<String>> referencesMap =
         indexByColumn(files.stream().filter(f -> f.getName().equals("references.csv")).findFirst().get(), REF_INTERNAL_TAXON_ID);
 
+      // Index credits by taxon key
+      Multimap<String, List<String>> creditsMap =
+        indexByColumn(files.stream().filter(f -> f.getName().equals("credits.csv")).findFirst().get(), CRE_INTERNAL_TAXON_ID);
+
       // Index synonyms by taxon key, sorting by name + author + infraAuthor.
       Comparator<List<String>> synonymComparator = Comparator.comparing(o -> o.get(SYN_NAME) + o.get(SYN_SPECIES_AUTHOR) + o.get(SYN_INFRA_RANK_AUTHOR));
       Multimap<String, List<String>> synonymsMap =
@@ -255,26 +272,56 @@ public class ArchiveBuilder extends AbstractBuilder {
           continue;
         }
 
-        String reference = null;
-        for (List<String> ref : referencesMap.get(taxonKey)) {
-          reference = ref.get(REF_CITATION);
-        }
-        assert (reference != null);
-
-        String citation = null;
-        for (List<String> doi : doisMap.get(taxonKey)) {
-          citation = reference + " " + DX_DOI.matcher(doi.get(DOI_DOI)).replaceAll("https://doi.org/");
-        }
-        assert (citation != null);
-
+        // Authority
         final String authority = taxon.get(TAX_AUTHORITY).replace("&amp;", "&").trim();
-        assert (authority != null);
+        assert (!Strings.isNullOrEmpty(authority));
+
+        // I wanted citations like
+        // "Blanc, J. 2008. Loxodonta africana. The IUCN Red List of Threatened Species 2008: e.T12392A3339343. https://dx.doi.org/10.2305/IUCN.UK.2008.RLTS.T12392A3339343.en. Downloaded on 15 January 2021."
+        // which is visible on https://www.iucnredlist.org/species/12392/3339343, but they are not available through
+        // a download, and it would be too many requests to use the API for this (and IUCN have been very reluctant
+        // about using the API.)
+        //
+        // For the moment, we will just use the DOI.
+        //String reference = null;
+        //for (List<String> ref : referencesMap.get(taxonKey)) {
+        //  reference = ref.get(REF_CITATION);
+        //}
+        //assert (!Strings.isNullOrEmpty(reference));
+
+        String citationAuthor = null;
+        for (List<String> credit : creditsMap.get(taxonKey)) {
+          if ("RedListAssessors".equals(credit.get(CRE_TYPE))) {
+            citationAuthor = credit.get(CRE_TEXT);
+            if (Strings.isNullOrEmpty(citationAuthor)) {
+              citationAuthor = credit.get(CRE_FULL);
+            }
+          }
+        }
+        assert (!Strings.isNullOrEmpty(citationAuthor));
+
+        String citationYear = null;
+        for (List<String> assessment : assessmentsMap.get(taxonKey)) {
+          citationYear = assessment.get(ASS_YEAR_PUBLISHED);
+        }
+        assert (!Strings.isNullOrEmpty(citationYear));
+
+        String citationScientificName = taxon.get(TAX_SCIENTIFIC_NAME) + ' ' + authority;
+
+        String citationDoi = null;
+        for (List<String> doi : doisMap.get(taxonKey)) {
+          citationDoi = DX_DOI.matcher(doi.get(DOI_DOI)).replaceAll("https://doi.org/");
+        }
+        assert (!Strings.isNullOrEmpty(citationDoi));
+
+        String citation = String.format("%s %s. %s. The IUCN Red List of Threatened Species %s: %s", citationAuthor, citationYear, citationScientificName, citationYear, citationDoi);
 
         // Calculate rank
         String rank = "species";
         if (!Strings.isNullOrEmpty(taxon.get(TAX_INFRA_TYPE))) {
           rank = taxon.get(TAX_INFRA_TYPE);
         }
+        assert(!Strings.isNullOrEmpty(rank));
 
         writer.newRecord(taxonKey);
         writer.addCoreColumn(DwcTerm.scientificName, taxon.get(TAX_SCIENTIFIC_NAME) + ' ' + authority);
@@ -358,6 +405,8 @@ public class ArchiveBuilder extends AbstractBuilder {
           writer.addCoreColumn(DwcTerm.scientificNameAuthorship, synonymAuthority);
           writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.SYNONYM);
           writer.addCoreColumn(DwcTerm.acceptedNameUsageID, taxonKey);
+          writer.addCoreColumn(DcTerm.bibliographicCitation, citation);
+          writer.addCoreColumn(DcTerm.references, "https://apiv3.iucnredlist.org/api/v3/taxonredirect/" + taxonKey);
         }
 
         LOG.info("  Taxon {} ({}) with {} synonyms completed.", taxonKey, taxon.get(TAX_SCIENTIFIC_NAME), synonym_index);
