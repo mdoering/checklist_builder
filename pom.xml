@@ -21,7 +21,7 @@
     <gbif-api.version>0.118</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
     <gbif-common.version>0.36</gbif-common.version>
-    <gbif-parsers.version>0.53-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.54</gbif-parsers.version>
     <gbif-registry.version>3.23</gbif-registry.version>
     <guava.version>18.0</guava.version>
     <guice.version>4.1.0</guice.version>
