@@ -64,7 +64,7 @@ public abstract class AbstractBuilder implements Runnable {
       addMetadataProvider();
 
       try {
-        writer = new DwcaWriter(type == DatasetType.CHECKLIST ? DwcTerm.Taxon : DwcTerm.Occurrence, cfg.archiveDir(), true);
+        writer = new DwcaWriter(type == DatasetType.CHECKLIST ? DwcTerm.Taxon : DwcTerm.Occurrence, cfg.archiveDir(), false);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

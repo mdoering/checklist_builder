@@ -78,7 +78,7 @@ public class HttpUtils {
 
   public void download(URI url, File downloadTo) throws Exception {
     // execute
-    HttpResponse<Path> resp = send(HttpRequest.newBuilder(url), HttpResponse.BodyHandlers.ofFile(downloadTo.toPath()));
+    send(HttpRequest.newBuilder(url), HttpResponse.BodyHandlers.ofFile(downloadTo.toPath()));
     LOG.info("Downloaded {} to {}", url, downloadTo.getAbsolutePath());
   }
 

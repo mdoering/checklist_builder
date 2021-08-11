@@ -108,7 +108,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     // recently these have been published annually in august only, but there have been different month before
     // try and find a list for each month going backwards until we hit sth
     for (int major=15; major>=10; major--) {
-      for (int minor=2; minor>0; minor--) {
+      for (int minor=3; minor>0; minor--) {
         String version = version(major, minor, null);
         String url = url(version);
         LOG.info("Try version {} at {}", version, url);
@@ -150,17 +150,24 @@ public class ArchiveBuilder extends AbstractBuilder {
   }
 
   private String[] flattenedRow(Iterator<Row> iter, @Nullable Row first) {
-    if (first == null) {
+    if (first == null && iter.hasNext()) {
       first = iter.next();
     }
-    String[] cols = new String[first.getLastCellNum()];
+    String[] cols;
+    if (first == null) {
+      cols = new String[100];
 
-    for (int seed = 0; seed < FLATTEN_ROWS; seed++) {
-      Row row = seed==0 ? first : iter.next();
-      int idx = COL_NAME + seed;
-      while (idx < row.getLastCellNum()) {
-        cols[idx] = col(row, idx);
-        idx += FLATTEN_ROWS;
+    } else {
+      cols = new String[first.getLastCellNum()];
+
+      for (int seed = 0; seed < FLATTEN_ROWS; seed++) {
+        if (seed != 0 && !iter.hasNext()) continue;
+        Row row = seed==0 ? first : iter.next();
+        int idx = COL_NAME + seed;
+        while (idx < row.getLastCellNum()) {
+          cols[idx] = col(row, idx);
+          idx += FLATTEN_ROWS;
+        }
       }
     }
     return cols;

@@ -97,7 +97,9 @@ public class ArchiveBuilder extends AbstractBuilder {
       setCookies();
     }
     HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(XML_DOWNLOAD));
-    builder.header("Cookie", cookies.get(0).split(";")[0] + "; " + cookies.get(1).split(";")[0]);
+    if (cookies != null && !cookies.isEmpty()) {
+      builder.header("Cookie", cookies.get(0).split(";")[0] + "; " + cookies.get(1).split(";")[0]);
+    }
     return http.send(builder, HttpResponse.BodyHandlers.ofInputStream()).body();
   }
 

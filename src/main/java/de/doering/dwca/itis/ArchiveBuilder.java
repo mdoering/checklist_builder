@@ -27,6 +27,7 @@ import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
 import org.sqlite.SQLiteConfig;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -55,23 +56,6 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final String CONTACT_POSITION = "Director";
   private static final String CONTACT_EMAIL = "itiswebmaster@itis.gov";
 
-  // sort v2017	Clements v2017 change	text for website v2017	category	English name	scientific name	range	order	family	extinct	extinct year	sort v2016	page 6.0
-  private static final int COL_ID = 0;
-  private static final int COL_REMARKS = 2;
-  private static final int COL_RANK = 3;
-  private static final int COL_EN_NAME = 4;
-  private static final int COL_NAME = 5;
-  private static final int COL_RANGE = 6;
-  private static final int COL_ORDER = 7;
-  private static final int COL_FAMILY = 8;
-  private static final int COL_EXTINCT = 9;
-  private static final int COL_EXTINCT_YEAR = 10;
-  // reference sheet
-  private static final int COL_REF_ABBREV = 0;
-  private static final int COL_REF_AUTHOR = 2;
-  private static final int COL_REF_YEAR = 3;
-  private static final int COL_REF_TITLE = 4;
-  private static final int COL_REF_JOURNAL = 5;
   private static final Term TERM_ITIS_COMPLETE = new UnknownTerm(URI.create("http:///itis.org/terms/completeness"), false);
   private static final Term TERM_PAGES = new UnknownTerm(URI.create("http:///itis.org/terms/pages"), false);
   private static final Term TERM_ISBN = new UnknownTerm(URI.create("http:///itis.org/terms/ISBN"), false);
@@ -230,15 +214,17 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
   }
 
-  private static String assembleCitation(Integer pubId, String reference_author, String title, String publication_name, String listed_pub_date, String publisher, String pages, String isbn, String issn) {
+  private static String assembleCitation(Integer pubId, String reference_author, String title, String publication_name, @Nullable String listed_pub_date, String publisher, String pages, String isbn, String issn) {
     if (pubId != null) {
       StringBuilder sb = new StringBuilder();
       sb.append(reference_author);
-      Pattern YEAR = Pattern.compile("(\\d\\d\\d\\d)-");
-      Matcher m = YEAR.matcher(listed_pub_date);
-      if (m.find()) {
-        sb.append(", ");
-        sb.append(m.group(1));
+      if (listed_pub_date != null) {
+        Pattern YEAR = Pattern.compile("(\\d\\d\\d\\d)-");
+        Matcher m = YEAR.matcher(listed_pub_date);
+        if (m.find()) {
+          sb.append(", ");
+          sb.append(m.group(1));
+        }
       }
       sb.append(": ");
       sb.append(title);
@@ -258,9 +244,6 @@ public class ArchiveBuilder extends AbstractBuilder {
 
   private String no0(int x) {
     return x == 0 ? null : String.valueOf(x);
-  }
-  private String trim0(String x) {
-    return (x == null || x.trim().equals(0) ? null : x.trim());
   }
 
   @Override
