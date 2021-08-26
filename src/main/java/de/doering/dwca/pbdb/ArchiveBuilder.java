@@ -28,6 +28,8 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.utils.file.tabular.TabularDataFileReader;
 import org.gbif.utils.file.tabular.TabularFiles;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -82,7 +84,7 @@ public class ArchiveBuilder extends AbstractBuilder {
         InputStream in = http.getStream(DOWNLOAD);
         TabularDataFileReader<List<String>> reader = TabularFiles.newTabularFileReader(
             new InputStreamReader(in, "UTF-8"),
-            '\t', "\n", '"', true
+            '\t', "\n", null, true
         );
 
         // parse rows
