@@ -63,7 +63,7 @@ import java.util.regex.Pattern;
  *
  * The resulting archive should be publicly accessible.
  *
- * An earlier version (cmmit 97f9555cb58a9a57b88c5b57d8b0d71f895bceb4) used the IUCN API, but for
+ * An earlier version (commit 97f9555cb58a9a57b88c5b57d8b0d71f895bceb4) used the IUCN API, but for
  * performance was replaced with the downloads.  The API could be used once more, if synonyms,
  * author names and citations are added to the "bulk list" endpoint.
  */
@@ -82,36 +82,48 @@ public class ArchiveBuilder extends AbstractBuilder {
   // These are five downloads from the IUCN Red List site, created using searches from https://www.iucnredlist.org/search
   //
   // They are "Search Results" downloads, but with the download options under the account profile
-  // editied to add additional tables: common names, credits, references, synonyms, threats, DOIs.
+  // edited to add additional tables: common names, credits, references, synonyms, threats, DOIs.
   //
-  // The are searches have
+  // The searches have
   // • Geographical Scope: Global
   // • Include: Species; Subspecies and varieties
   // • Taxonomy:
-  //   • Chromista, Fungi, Plantae except Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=ec87b4a8-ae17-456d-b7b0-34c2401e0d49
-  //   • Magnoliopsida: https://www.iucnredlist.org/search?dl=true&permalink=774a66fc-ab93-4f38-b7cf-be12e3991867
-  //   • Animalia except Chordata: https://www.iucnredlist.org/search?dl=true&permalink=7a668685-6d45-456e-bf20-e68206970be2
-  //   • Chordata except Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=1975aa7a-d2df-44fc-846b-b9dcb22da748
-  //   • Passeriformes: https://www.iucnredlist.org/search?dl=true&permalink=4bde9672-b4c3-4cd3-b082-cad5070cc0a0
+  //   • Chromista, Fungi, Plantae except Magnoliopsida:
+  //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=ec87b4a8-ae17-456d-b7b0-34c2401e0d49
+  //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=0209d652-b530-4370-b1dd-0f6060ceb2a2
+  //   • Magnoliopsida:
+  //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=774a66fc-ab93-4f38-b7cf-be12e3991867
+  //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=b43be10f-29f0-4578-ba9d-9d36c013d5ed
+  //   • Animalia except Chordata:
+  //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=7a668685-6d45-456e-bf20-e68206970be2
+  //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=04ae69d8-62e5-43b3-ad3d-205d249bba05
+  //   • Chordata except Passeriformes:
+  //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=1975aa7a-d2df-44fc-846b-b9dcb22da748
+  //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=6957ecea-6987-46b8-858b-46c88dd52a66
+  //   • Passeriformes:
+  //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=4bde9672-b4c3-4cd3-b082-cad5070cc0a0
+  //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=0d602296-1d48-427b-ad5c-71f232b0874b
   // Then it is downloaded in "Search Results" format.  Splitting the birds in two is necessary
   // to enable use of the "Search Results" format, and splitting everything else into parts is
   // needed to avoid overwhelming the IUCN service — without this, dois.txt is usually blank.
   //
-  // These searches are for the 2020-3 Red List release.  The next release might have different phyla,
+  // These searches are for the 2020-3 and 2021-2 Red List releases.  Future releases might have different phyla,
   // classes etc, so they might need to be checked.  (If the bug isn't fixed.  Even if it is fixed,
   // we were told it was necessary to do a Passeriformes + everything-else downloads to avoid a
   // different limitation.)
   //
+  // Downloads take about 2 hours to complete.
+  //
   // Expected total results
-  private static final int EXPECTED_TOTAL = 131_385;
+  private static final int EXPECTED_TOTAL = 47177 + 26246 + 49674 + 6663 + 11340;
   //
   // The downloads are stored in a private location in accordance with the IUCN terms and conditions.
   private static final String[] DOWNLOADS = new String[]{
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_9a32a8dd-aeb8-4ac0-9d3d-0f47b27c3dcf.zip", // Chromista, Fungi, Plantae except Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_a638c56d-904a-4f9c-8b4c-49e4de32af0b.zip", // Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_f2d86ced-7c0d-42fe-82e3-57dae084b887.zip", // Animalia except Chordata
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_136ab282-b2d0-485d-ae60-0439f3407ae3.zip", // Chordata except Passeriformes
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/redlist_species_data_dad823f0-2d30-49d5-b521-e43082da214b.zip" // Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_173004a7-481e-4896-8e13-ba145763c88e.zip", // Chromista, Fungi, Plantae except Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_f23c0aea-6b28-4328-be30-085d3b75587d.zip", // Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_46078e75-8b46-4dde-abfc-d3ac690a75ed.zip", // Animalia except Chordata
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_3fa86c0d-e55f-48f5-93e2-3492cd22c2a3.zip", // Chordata except Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_a0a8c33f-0b0f-4367-a66a-ab1d29f56f61.zip"  // Passeriformes
   };
 
   private static final String VERSION_URL = "https://apiv3.iucnredlist.org/api/v3/version";
