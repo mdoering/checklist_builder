@@ -91,39 +91,49 @@ public class ArchiveBuilder extends AbstractBuilder {
   //   • Chromista, Fungi, Plantae except Magnoliopsida:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=ec87b4a8-ae17-456d-b7b0-34c2401e0d49
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=0209d652-b530-4370-b1dd-0f6060ceb2a2
+  //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=24e91ec3-04dc-4a2b-a7f5-a0ed43745eb2
+  //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=2b8593b2-4e46-4ebc-9a46-e63627f2b54c
   //   • Magnoliopsida:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=774a66fc-ab93-4f38-b7cf-be12e3991867
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=b43be10f-29f0-4578-ba9d-9d36c013d5ed
+  //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=31177ed1-1200-49d4-97e9-aede9dd43c56
+  //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=f66e8cce-8332-482d-bc24-ca807f8f06b2
   //   • Animalia except Chordata:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=7a668685-6d45-456e-bf20-e68206970be2
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=04ae69d8-62e5-43b3-ad3d-205d249bba05
+  //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=52a0ba93-b58f-41f1-8f84-c8c5775f23ac
+  //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=f6b2fec8-5de2-4440-8922-a153a48d457b
   //   • Chordata except Passeriformes:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=1975aa7a-d2df-44fc-846b-b9dcb22da748
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=6957ecea-6987-46b8-858b-46c88dd52a66
+  //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=75c228ba-d760-4aeb-80a2-249327e8e21d
+  //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=75302296-51fa-4d15-a1c1-772232e12944
   //   • Passeriformes:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=4bde9672-b4c3-4cd3-b082-cad5070cc0a0
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=0d602296-1d48-427b-ad5c-71f232b0874b
+  //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=1fad223e-cd64-4430-a0f8-703158e4ea24
+  //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=a5792c2f-2312-4048-b344-5fe2f06fc7ff
   // Then it is downloaded in "Search Results" format.  Splitting the birds in two is necessary
   // to enable use of the "Search Results" format, and splitting everything else into parts is
   // needed to avoid overwhelming the IUCN service — without this, dois.txt is usually blank.
   //
-  // These searches are for the 2020-3 and 2021-2 Red List releases.  Future releases might have different phyla,
-  // classes etc, so they might need to be checked.  (If the bug isn't fixed.  Even if it is fixed,
+  // These searches are for the listed releases.  Future releases might have different phyla,
+  // classes etc, so they need to be checked.  (If the bug isn't fixed.  Even if it is fixed,
   // we were told it was necessary to do a Passeriformes + everything-else downloads to avoid a
   // different limitation.)
   //
   // Downloads take about 2 hours to complete.
   //
   // Expected total results
-  private static final int EXPECTED_TOTAL = 47177 + 26246 + 49674 + 6663 + 11340;
+  private static final int EXPECTED_TOTAL = 11949 + 51970 + 27093 + 52819 + 6659;
   //
   // The downloads are stored in a private location in accordance with the IUCN terms and conditions.
   private static final String[] DOWNLOADS = new String[]{
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_173004a7-481e-4896-8e13-ba145763c88e.zip", // Chromista, Fungi, Plantae except Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_f23c0aea-6b28-4328-be30-085d3b75587d.zip", // Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_46078e75-8b46-4dde-abfc-d3ac690a75ed.zip", // Animalia except Chordata
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_3fa86c0d-e55f-48f5-93e2-3492cd22c2a3.zip", // Chordata except Passeriformes
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2021-2/redlist_species_data_a0a8c33f-0b0f-4367-a66a-ab1d29f56f61.zip"  // Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2022-1/redlist_species_data_b73d75b5-7f3d-4dea-b690-0b3a29a76143.zip", // Chromista, Fungi, Plantae except Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2022-1/redlist_species_data_bd180eeb-8464-4e88-94c4-85cd9f77800f.zip", // Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2022-1/redlist_species_data_5833b9b4-9e6d-43c6-8157-7cab6d81a88f.zip", // Animalia except Chordata
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2022-1/redlist_species_data_628b7fa5-91bc-4779-b330-576f5892e8f3.zip", // Chordata except Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2022-1/redlist_species_data_f5772c84-993e-400d-96f8-6413e22ab28d.zip"  // Passeriformes
   };
 
   private static final String VERSION_URL = "https://apiv3.iucnredlist.org/api/v3/version";
@@ -355,7 +365,7 @@ public class ArchiveBuilder extends AbstractBuilder {
         for (List<String> assessment : assessmentsMap.get(taxonKey)) {
           Map<Term, String> globalDistribution = new HashMap<>();
           globalDistribution.put(DwcTerm.locality, "Global");
-          globalDistribution.put(IucnTerm.threatStatus, assessment.get(ASS_REDLIST_CATEGORY));
+          globalDistribution.put(IucnTerm.threatStatus, assessment.get(ASS_REDLIST_CATEGORY).replace("Lower Risk/", ""));
           // What about criteria? Population trend?
           switch (assessment.get(ASS_REDLIST_CATEGORY)) {
             case "Extinct":
@@ -427,10 +437,10 @@ public class ArchiveBuilder extends AbstractBuilder {
       }
 
     }
-    if (count != EXPECTED_TOTAL) {
+    if (count == EXPECTED_TOTAL) {
       LOG.info("Processed {} taxa (as expected) from the IUCN downloads", count);
     } else {
-      LOG.error("Total does not match: processed {} taxa from the IUCN downloads, but expected {}", count, EXPECTED_TOTAL);
+      LOG.error("TOTAL DOES NOT MATCH: processed {} taxa from the IUCN downloads, but expected {}", count, EXPECTED_TOTAL);
     }
   }
 
