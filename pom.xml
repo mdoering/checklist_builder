@@ -13,7 +13,7 @@
 
   <properties>
     <beanutils.version>1.8.3</beanutils.version>
-    <compress.version>1.20</compress.version>
+    <compress.version>1.21</compress.version>
     <coldp.version>1.0-SNAPSHOT</coldp.version>
     <dwc-api.version>1.28</dwc-api.version>
     <dwca-io.version>2.9</dwca-io.version>
