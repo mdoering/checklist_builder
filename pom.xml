@@ -14,6 +14,7 @@
   <properties>
     <beanutils.version>1.8.3</beanutils.version>
     <compress.version>1.20</compress.version>
+    <coldp.version>1.0-SNAPSHOT</coldp.version>
     <dwc-api.version>1.28</dwc-api.version>
     <dwca-io.version>2.9</dwca-io.version>
     <flickr4j.version>2.16</flickr4j.version>
@@ -140,11 +141,11 @@
   <repositories>
     <repository>
       <id>gbif-all</id>
-      <url>http://repository.gbif.org/content/groups/gbif</url>
+      <url>https://repository.gbif.org/content/groups/gbif</url>
     </repository>
     <repository>
       <id>gbif-thirdparty</id>
-      <url>http://repository.gbif.org/content/repositories/thirdparty/</url>
+      <url>https://repository.gbif.org/content/repositories/thirdparty/</url>
     </repository>
   </repositories>
 
@@ -165,6 +166,11 @@
       <groupId>org.gbif</groupId>
       <artifactId>dwc-api</artifactId>
       <version>${dwc-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.catalogueoflife</groupId>
+      <artifactId>coldp</artifactId>
+      <version>${coldp.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -212,6 +218,11 @@
     </dependency>
 
     <!-- Other -->
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+      <version>2.0.1.Final</version>
+    </dependency>
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>

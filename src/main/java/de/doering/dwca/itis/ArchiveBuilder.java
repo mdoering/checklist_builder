@@ -18,10 +18,12 @@ package de.doering.dwca.itis;
 import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.BuilderConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.DatasetType;
+import org.gbif.api.vocabulary.License;
 import org.gbif.dwc.terms.*;
 import org.gbif.utils.file.CompressionUtil;
 import org.gbif.utils.file.FileUtils;
@@ -43,19 +45,21 @@ public class ArchiveBuilder extends AbstractBuilder {
   // metadata
   private static final String TITLE = "Integrated Taxonomic Information System (ITIS)";
   private static final URI HOMEPAGE = URI.create("https://www.itis.gov/");
-  private static final String CITATION = "";
+  private static final DOI DOI = new DOI("https://doi.org/10.5066/F7KH0KBK");
   private static final URI LOGO = URI.create("https://raw.githubusercontent.com/mdoering/checklist_builder/master/src/main/resources/itis/ITIS_logo.png");
   private static final String CONTACT_ORG = "Integrated Taxonomic Information System (ITIS)";
-  private static final String CONTACT_ADDRESS = "at U.S. Geological Survey";
-  private static final String CONTACT_ADDRESS2 = "12201 Sunrise Valley Drive, MS 302";
-  private static final String CONTACT_CITY = "Reston";
-  private static final String CONTACT_ZIP = "VA 20192";
+  private static final String CONTACT_CITY = "Washington, DC";
   private static final Country CONTACT_COUNTRY = Country.UNITED_STATES;
-  private static final String CONTACT_FIRST_NAME = "Gerald";
-  private static final String CONTACT_LAST_NAME = "Guala";
-  private static final String CONTACT_POSITION = "Director";
   private static final String CONTACT_EMAIL = "itiswebmaster@itis.gov";
-
+  // see https://www.checklistbank.org/dataset/2144/about
+  private static final List<Contact> EDITORS = List.of(
+      contact("Sara", "Alexander", "alexandersar@si.edu", ContactType.EDITOR),
+      contact("Alicia", "Hodson", "hodsona@si.edu", ContactType.EDITOR),
+      contact("David", "Mitchell", "mitchelld@si.edu", "0000-0002-5418-244X", ContactType.EDITOR),
+      contact("Dave", "Nicolson", "nicolsod@si.edu", "0000-0002-7987-0679", ContactType.EDITOR),
+      contact("Thomas", "Orrell", "orrellt@si.edu", "0000-0003-1038-3028", ContactType.EDITOR),
+      contact("Daniel", "Perez-Gelabert", "perezd@si.edu", "0000-0003-3270-9551", ContactType.EDITOR)
+  );
   private static final Term TERM_ITIS_COMPLETE = new UnknownTerm(URI.create("http:///itis.org/terms/completeness"), false);
   private static final Term TERM_PAGES = new UnknownTerm(URI.create("http:///itis.org/terms/pages"), false);
   private static final Term TERM_ISBN = new UnknownTerm(URI.create("http:///itis.org/terms/ISBN"), false);
@@ -250,22 +254,22 @@ public class ArchiveBuilder extends AbstractBuilder {
   protected void addMetadata() {
     // metadata
     dataset.setTitle(TITLE);
-    setCitation(CITATION);
+    // https://www.itis.gov/privacy.html
+    dataset.setLicense(License.CC0_1_0);
+    dataset.setDoi(DOI);
     setDescription("itis/description.txt");
     dataset.setHomepage(HOMEPAGE);
     dataset.setLogoUrl(LOGO);
     Contact contact = new Contact();
-    contact.setType(ContactType.ORIGINATOR);
+    contact.setType(ContactType.POINT_OF_CONTACT);
     contact.setOrganization(CONTACT_ORG);
-    contact.getAddress().add(CONTACT_ADDRESS);
-    contact.getAddress().add(CONTACT_ADDRESS2);
     contact.setCity(CONTACT_CITY);
-    contact.setPostalCode(CONTACT_ZIP);
     contact.setCountry(CONTACT_COUNTRY);
-    contact.setFirstName(CONTACT_FIRST_NAME);
-    contact.setLastName(CONTACT_LAST_NAME);
-    contact.setPostalCode(CONTACT_POSITION);
     contact.getEmail().add(CONTACT_EMAIL);
     addContact(contact);
+
+    for (var ed : EDITORS) {
+      dataset.getContacts().add(ed);
+    }
   }
 }

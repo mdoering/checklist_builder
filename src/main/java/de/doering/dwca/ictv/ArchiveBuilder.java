@@ -40,9 +40,10 @@ import java.util.Set;
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
   // https://talk.ictvonline.org/files/master-species-lists/
-  private static final String DOWNLOAD = "http://talk.ictvonline.org/files/master-species-lists/m/msl/9601/download";
-  private static final String PUBDATE = "2020-04-23";
-  private static final String VERSION = "2019 v1";
+  private static final int DOWNLOAD_KEY = 12314;
+  private static final String PUBDATE = "2021-05-18";
+  private static final String VERSION = "2020.v1";
+  private static final String DOWNLOAD = "http://talk.ictvonline.org/files/master-species-lists/m/msl/"+DOWNLOAD_KEY+"/download";
 
   // metadata
   private static final String ORG = " International Committee on Taxonomy of Viruses (ICTV)";

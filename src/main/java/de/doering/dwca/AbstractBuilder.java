@@ -1,5 +1,6 @@
 package de.doering.dwca;
 
+import com.beust.jcommander.internal.Nullable;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
@@ -22,7 +23,6 @@ import org.gbif.utils.file.CompressionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +30,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 public abstract class AbstractBuilder implements Runnable {
   protected static Logger LOG = LoggerFactory.getLogger(AbstractBuilder.class);
@@ -71,14 +72,12 @@ public abstract class AbstractBuilder implements Runnable {
 
       parseData();
       addMetadata();
+      writeMetadata();
+      writer.close();
 
       // finish archive and zip it
       final File dwcaDir = cfg.archiveDir();
       LOG.info("Bundling archive at {}", dwcaDir.getAbsolutePath());
-      writer.setMetadata(toEml(), "eml.xml");
-      writer.close();
-
-      // compress
       File zip = new File(dwcaDir.getParentFile(), dwcaDir.getName() + ".zip");
       CompressionUtil.zipDir(dwcaDir, zip);
       LOG.info("Dwc archive completed at {} !", zip);
@@ -89,6 +88,9 @@ public abstract class AbstractBuilder implements Runnable {
     }
   }
 
+  protected void writeMetadata() throws IOException {
+    writer.setMetadata(toEml(), "eml.xml");
+  }
   protected String col(Row row, int column) {
     return ExcelUtils.col(row, column);
   }
@@ -133,7 +135,9 @@ public abstract class AbstractBuilder implements Runnable {
     }
   }
 
-  protected abstract void addMetadata() throws Exception;
+  protected void addMetadata() throws Exception {
+    // nothing by default
+  };
 
   protected void addMetadataProvider() {
     addContact("GBIF", "Markus", "Döring", "mdoering@gbif.org", ContactType.METADATA_AUTHOR);
@@ -143,6 +147,28 @@ public abstract class AbstractBuilder implements Runnable {
     addContact(org, null, null, email, ContactType.ORIGINATOR);
     // or use ADMINISTRATIVE_POINT_OF_CONTACT ?
     addContact(org, null, null, email, ContactType.POINT_OF_CONTACT);
+  }
+
+  protected static Contact contact(String first, String last, ContactType role) {
+    return contact(first, last, null, null, role);
+  }
+
+  protected static Contact contact(String first, String last, String email, ContactType role) {
+    return contact(first, last, email, null, role);
+  }
+
+  protected static Contact contact(String first, String last, String email, String orcid, ContactType role) {
+    Contact c = new Contact();
+    c.setType(role);
+    c.setFirstName(first);
+    c.setLastName(last);
+    if (email != null) {
+      c.setEmail(List.of(email));
+    }
+    if (orcid != null && orcid.startsWith("0")) {
+      c.setUserId(List.of("https://orcid.org/" + orcid));
+    }
+    return c;
   }
 
   protected void addContactPerson(String first, String last, ContactType role) {
