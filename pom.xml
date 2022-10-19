@@ -27,7 +27,7 @@
     <guava.version>18.0</guava.version>
     <guice.version>4.1.0</guice.version>
     <io.version>2.5</io.version>
-    <jackson.version>2.11.2</jackson.version>
+    <jackson.version>2.13.4.1</jackson.version>
     <jcommander.version>1.48</jcommander.version>
     <jena.version>2.10.0</jena.version>
     <junit.version>4.11</junit.version>
