@@ -143,8 +143,8 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int TAX_SCIENTIFIC_NAME = 1;
   private static final int TAX_KINGDOM_NAME = 2;
   private static final int TAX_PHYLUM_NAME = 3;
-  private static final int TAX_ORDER_NAME = 4;
-  private static final int TAX_CLASS_NAME = 5;
+  private static final int TAX_CLASS_NAME = 4;
+  private static final int TAX_ORDER_NAME = 5;
   private static final int TAX_FAMILY_NAME = 6;
   private static final int TAX_GENUS_NAME = 7;
   private static final int TAX_SPECIES_NAME = 8;
