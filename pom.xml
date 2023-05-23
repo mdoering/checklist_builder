@@ -38,7 +38,7 @@
     <poi.version>3.12</poi.version>
     <postgresql.version>42.2.16.jre7</postgresql.version>
     <slf4j.version>1.7.21</slf4j.version>
-    <sqllite.version>3.32.3.2</sqllite.version>
+    <sqllite.version>3.41.2.2</sqllite.version>
     <tagsoup.version>1.2.1</tagsoup.version>
   </properties>
 
