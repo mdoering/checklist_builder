@@ -7,8 +7,6 @@ import org.apache.poi.ss.usermodel.Row;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_FORMULA;
-
 /**
  *
  */
@@ -44,7 +42,7 @@ public class ExcelUtils {
           if (c.getHyperlink() != null) {
             return c.getHyperlink().getAddress();
 
-          } else if (c.getCellType()==CELL_TYPE_FORMULA && c.getCellFormula() != null) {
+          } else if (c.getCellType()==Cell.CELL_TYPE_FORMULA && c.getCellFormula() != null) {
             Matcher m = HYPERLINK.matcher(c.getCellFormula());
             if (m.find()) {
               return m.group(1);

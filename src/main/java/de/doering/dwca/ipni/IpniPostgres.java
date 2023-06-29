@@ -1,14 +1,16 @@
 package de.doering.dwca.ipni;
 
 import com.google.common.base.Strings;
-import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.dwc.DwcaWriter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.nameparser.NameParser;
-import org.gbif.nameparser.UnparsableException;
+import org.gbif.nameparser.NameParserGBIF;
+import org.gbif.nameparser.api.NameParser;
+import org.gbif.nameparser.api.NomCode;
+import org.gbif.nameparser.api.ParsedName;
+import org.gbif.nameparser.api.UnparsableNameException;
 import org.gbif.utils.file.CompressionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +28,7 @@ import java.util.Properties;
 public class IpniPostgres {
   private static Logger LOG = LoggerFactory.getLogger(IpniPostgres.class);
   private static final int BATCH_SIZE = 1000;
-  private NameParser parser = new NameParser();
+  private NameParser parser = new NameParserGBIF();
   private Connection con;
   private static final String BASE_LINK2 = "http://www.ipni.org/ipni/idPlantNameSearch.do?id=";
   private static final String BASE_LINK = "http://ipni.org/urn:lsid:ipni.org:names:";
@@ -44,7 +46,7 @@ public class IpniPostgres {
     con.setAutoCommit(false);
   }
 
-  void parseSynonyms() throws SQLException {
+  void parseSynonyms() throws SQLException, InterruptedException {
     PreparedStatement upd = con.prepareStatement("UPDATE synonym set canonical=?, authors=? WHERE id=?");
 
     Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
@@ -57,7 +59,7 @@ public class IpniPostgres {
         ParsedName pn = parser.parse(rs.getString(2), null);
         System.out.println(rs.getString(2));
 
-        upd.setString(1, pn.canonicalNameWithMarker());
+        upd.setString(1, pn.canonicalNameComplete());
         upd.setString(2, pn.authorshipComplete());
         upd.setInt(3, rs.getInt(1));
         upd.execute();
@@ -66,8 +68,8 @@ public class IpniPostgres {
           System.out.println("committing "+counter);
           con.commit();
         }
-      } catch (UnparsableException e) {
-        System.err.println(e.type + ": " + e.name);
+      } catch (UnparsableNameException e) {
+        System.err.println(e.getType() + ": " + e.getName());
       }
     }
     con.commit();
@@ -77,7 +79,7 @@ public class IpniPostgres {
     System.out.println("PARSED ALL SYNONYMS. DONE!");
   }
 
-  void parseBasionyms() throws SQLException {
+  void parseBasionyms() throws SQLException, InterruptedException {
     PreparedStatement upd = con.prepareStatement("UPDATE name set basionym_canonical=?, basionym_authors=? WHERE id=?");
 
     Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
@@ -87,10 +89,10 @@ public class IpniPostgres {
     int counter = 0;
     while (rs.next()) {
       try {
-        ParsedName pn = parser.parse(rs.getString(2), null);
+        ParsedName pn = parser.parse(rs.getString(2), null, NomCode.BOTANICAL);
         System.out.println(rs.getString(2));
 
-        upd.setString(1, pn.canonicalNameWithMarker());
+        upd.setString(1, pn.canonicalNameComplete());
         upd.setString(2, pn.authorshipComplete());
         upd.setString(3, rs.getString(1));
         upd.execute();
@@ -99,8 +101,8 @@ public class IpniPostgres {
           System.out.println("committing "+counter);
           con.commit();
         }
-      } catch (UnparsableException e) {
-        System.err.println(e.type + ": " + e.name);
+      } catch (UnparsableNameException e) {
+        System.err.println(e.getType() + ": " + e.getName());
       }
     }
     con.commit();

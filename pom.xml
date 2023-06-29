@@ -13,32 +13,31 @@
 
   <properties>
     <beanutils.version>1.8.3</beanutils.version>
-    <compress.version>1.20</compress.version>
+    <compress.version>1.23.0</compress.version>
     <coldp.version>1.0-SNAPSHOT</coldp.version>
-    <dwc-api.version>1.28</dwc-api.version>
-    <dwca-io.version>2.9</dwca-io.version>
-    <flickr4j.version>2.16</flickr4j.version>
-    <freemarker.version>2.3.28</freemarker.version>
-    <gbif-api.version>0.118</gbif-api.version>
+    <dwc-api.version>1.46</dwc-api.version>
+    <dwca-io.version>2.16</dwca-io.version>
+    <flickr4j.version>3.0.8</flickr4j.version>
+    <freemarker.version>2.3.32</freemarker.version>
+    <gbif-api.version>1.5.1</gbif-api.version>
     <gbif-cli.version>0.10</gbif-cli.version>
     <gbif-common.version>0.36</gbif-common.version>
-    <gbif-parsers.version>0.54</gbif-parsers.version>
-    <gbif-registry.version>3.23</gbif-registry.version>
-    <guava.version>18.0</guava.version>
-    <guice.version>4.1.0</guice.version>
-    <io.version>2.5</io.version>
-    <jackson.version>2.11.2</jackson.version>
-    <jcommander.version>1.48</jcommander.version>
+    <gbif-parsers.version>0.62</gbif-parsers.version>
+    <gbif-registry.version>3.87</gbif-registry.version>
+    <guava.version>32.0.1-jre</guava.version>
+    <io.version>2.13.0</io.version>
+    <jackson.version>2.13.2</jackson.version>
+    <jcommander.version>1.82</jcommander.version>
     <jena.version>2.10.0</jena.version>
     <junit.version>4.11</junit.version>
-    <lang3.version>3.11</lang3.version>
-    <logback.version>1.0.13</logback.version>
+    <lang3.version>3.12.0</lang3.version>
+    <logback.version>1.4.8</logback.version>
     <mockito.version>1.8.5</mockito.version>
-    <name-parser.version>2.17</name-parser.version>
+    <name-parser.version>3.8.5</name-parser.version>
     <poi.version>3.12</poi.version>
-    <postgresql.version>42.2.16.jre7</postgresql.version>
+    <postgresql.version>42.6.0</postgresql.version>
     <slf4j.version>1.7.21</slf4j.version>
-    <sqllite.version>3.32.3.2</sqllite.version>
+    <sqllite.version>3.42.0.0</sqllite.version>
     <tagsoup.version>1.2.1</tagsoup.version>
   </properties>
 

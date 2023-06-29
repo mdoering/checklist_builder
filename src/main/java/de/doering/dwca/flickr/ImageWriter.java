@@ -16,8 +16,8 @@ public class ImageWriter {
   private static final Logger LOG = LoggerFactory.getLogger(ImageWriter.class);
 
   private final DwcaWriter writer;
-  private final Term thumbnail = new UnknownTerm(URI.create("http://flickr.com/terms/smallSquareUrl"),"smallSquareUrl", false);
-  private final Term flickrid = new UnknownTerm(URI.create("http://flickr.com/terms/photoId"),"photoId", false);
+  private final Term thumbnail = new UnknownTerm(URI.create("http://flickr.com/terms/smallSquareUrl"),"flickr","smallSquareUrl", false);
+  private final Term flickrid = new UnknownTerm(URI.create("http://flickr.com/terms/photoId"),"flickr", "photoId", false);
   private final Cache<String, Boolean> cache;
 
   public ImageWriter(DwcaWriter writer, int cacheSize) {
