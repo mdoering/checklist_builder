@@ -19,6 +19,7 @@ import de.doering.dwca.AbstractBuilder;
 import de.doering.dwca.BuilderConfig;
 import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
+import org.gbif.api.vocabulary.License;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -42,7 +43,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   public static final String LOGO = "https://www.worldbirdnames.org/img/hdr7.jpg";
   public static final String CONTACT_ORG = "IOC World Bird List";
   private static final String CONTACT_EMAIL = "worldbirdnames@gmail.com";
-  public static final String LICENSE = "Creative Commons Attribution 3.0 Unported License";
+  public static final License LICENSE = License.CC_BY_4_0;
   private static final String TITLE = "IOC World Bird List, v";
   private static final String DESCRIPTION = "The IOC World Bird List is an open access resource of the international community of ornithologists. " +
       "Our goal is to facilitate worldwide communication in ornithology and conservation based on an  up-to-date classification of world birds and a set of English names that follows explicit guidelines for spelling and construction (Gill & Wright 2006).\n" +
@@ -80,7 +81,8 @@ public class ArchiveBuilder extends AbstractBuilder {
       parser.parse(new InputSource(reader), handler);
 
       setPubDate(handler.getYear());
-      dataset.setTitle(TITLE + handler.getVersion());
+      dataset.setTitle(TITLE);
+      dataset.setVersion(handler.getVersion());
 
     } catch (Exception e) {
       LOG.error("Cannot process IOC XML", e);
@@ -108,10 +110,10 @@ public class ArchiveBuilder extends AbstractBuilder {
     dataset.setDescription(DESCRIPTION);
     dataset.setHomepage(uri(HOMEPAGE));
     dataset.setLogoUrl(uri(LOGO));
+    dataset.setLicense(LICENSE);
     addContact(CONTACT_ORG, CONTACT_EMAIL);
     addContactPerson("Frank", "Frank", ContactType.EDITOR);
     addContactPerson("David", "Donsker", ContactType.EDITOR);
-    dataset.setRights(LICENSE);
   }
 
 }

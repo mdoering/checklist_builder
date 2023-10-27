@@ -92,7 +92,8 @@ public class ArchiveBuilder extends AbstractBuilder {
       parser.parse(new InputSource(reader), handler);
 
       setPubDate(handler.getYear());
-      dataset.setTitle(TITLE + handler.getVersion());
+      dataset.setTitle(TITLE);
+      dataset.setVersion(handler.getVersion());
 
     } catch (Exception e) {
       LOG.error("Cannot process IOC XML", e);
@@ -242,7 +243,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     dataset.setDescription(DESCRIPTION);
     dataset.setHomepage(uri(de.doering.dwca.ioc.ArchiveBuilder.HOMEPAGE));
     dataset.setLogoUrl(uri(de.doering.dwca.ioc.ArchiveBuilder.LOGO));
-    dataset.setRights(de.doering.dwca.ioc.ArchiveBuilder.LICENSE);
+    dataset.setLicense(de.doering.dwca.ioc.ArchiveBuilder.LICENSE);
     parseXmlMetadata();
     addExternalData(DOWNLOAD, null);
     addContact(null, CONTACT_FIRST, CONTACT_LAST, EMAIL);
