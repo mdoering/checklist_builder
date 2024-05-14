@@ -42,8 +42,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Prokaryotic Nomenclature Up-to-date (PNU) / LPSN
+ * Please use newer LPSN ColDP generator
+ * https://github.com/CatalogueOfLife/coldp-generator
  */
+@Deprecated
 public class ArchiveBuilder extends AbstractBuilder {
 
   private static final String VERSION_PAGE = "https://www.dsmz.de/services/online-tools/prokaryotic-nomenclature-up-to-date/downloads";

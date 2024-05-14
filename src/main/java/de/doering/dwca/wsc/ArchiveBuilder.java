@@ -48,6 +48,15 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+
+/**
+ * Please use ColDP uploads into CLB:
+ * https://www.checklistbank.org/dataset/1029/imports
+ *
+ * or newer ColDP generator
+ * https://github.com/CatalogueOfLife/coldp-generator
+ */
+@Deprecated
 public class ArchiveBuilder extends AbstractBuilder {
   private static final String DOWNLOAD = String.format("https://wsc.nmbe.ch/resources/species_export_%s.csv",
       new SimpleDateFormat("yyyyMMdd").format(new Date()) // 20230629

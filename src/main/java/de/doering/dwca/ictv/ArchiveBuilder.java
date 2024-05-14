@@ -37,6 +37,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Please use newer ColDP generator
+ * https://github.com/CatalogueOfLife/coldp-generator
+ */
+@Deprecated
 public class ArchiveBuilder extends AbstractBuilder {
   // to be updated manually to current version !!!
   // https://talk.ictvonline.org/files/master-species-lists/
