@@ -60,10 +60,10 @@ public class ArchiveBuilder extends AbstractBuilder {
       contact("Thomas", "Orrell", "orrellt@si.edu", "0000-0003-1038-3028", ContactType.EDITOR),
       contact("Daniel", "Perez-Gelabert", "perezd@si.edu", "0000-0003-3270-9551", ContactType.EDITOR)
   );
-  private static final Term TERM_ITIS_COMPLETE = new UnknownTerm(URI.create("http:///itis.org/terms/completeness"), false);
-  private static final Term TERM_PAGES = new UnknownTerm(URI.create("http:///itis.org/terms/pages"), false);
-  private static final Term TERM_ISBN = new UnknownTerm(URI.create("http:///itis.org/terms/ISBN"), false);
-  private static final Term TERM_ISSN = new UnknownTerm(URI.create("http:///itis.org/terms/ISSN"), false);
+  private static final Term TERM_ITIS_COMPLETE = new UnknownTerm(URI.create("http://itis.org/terms/completeness"), false);
+  private static final Term TERM_PAGES = new UnknownTerm(URI.create("http://itis.org/terms/pages"), false);
+  private static final Term TERM_ISBN = new UnknownTerm(URI.create("http://itis.org/terms/ISBN"), false);
+  private static final Term TERM_ISSN = new UnknownTerm(URI.create("http://itis.org/terms/ISSN"), false);
 
   public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
