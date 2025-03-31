@@ -45,6 +45,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -94,30 +95,35 @@ public class ArchiveBuilder extends AbstractBuilder {
   //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=24e91ec3-04dc-4a2b-a7f5-a0ed43745eb2
   //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=2b8593b2-4e46-4ebc-9a46-e63627f2b54c
   //     2024-2: https://www.iucnredlist.org/search?dl=true&permalink=34d65136-e15c-423a-8d6f-d2b8da3e1fca
+  //     2025-1: https://www.iucnredlist.org/search?dl=true&permalink=a84bbd4d-cff0-48e7-b35d-d6e840e54c63
   //   • Magnoliopsida:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=774a66fc-ab93-4f38-b7cf-be12e3991867
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=b43be10f-29f0-4578-ba9d-9d36c013d5ed
   //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=31177ed1-1200-49d4-97e9-aede9dd43c56
   //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=f66e8cce-8332-482d-bc24-ca807f8f06b2
   //     2024-2: https://www.iucnredlist.org/search?dl=true&permalink=72846f1a-333f-4c46-9e9a-cb2020c732f3
+  //     2025-1: https://www.iucnredlist.org/search?dl=true&permalink=eff73c99-5c5c-4a87-a48d-8e7073938d76
   //   • Animalia except Chordata:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=7a668685-6d45-456e-bf20-e68206970be2
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=04ae69d8-62e5-43b3-ad3d-205d249bba05
   //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=52a0ba93-b58f-41f1-8f84-c8c5775f23ac
   //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=f6b2fec8-5de2-4440-8922-a153a48d457b
   //     2024-2: https://www.iucnredlist.org/search?dl=true&permalink=94225c42-c643-43a9-84ac-372a9b39df4e
+  //     2025-1: https://www.iucnredlist.org/search?dl=true&permalink=59b9b612-f23c-42a0-9831-66fb76f11ae3
   //   • Chordata except Passeriformes:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=1975aa7a-d2df-44fc-846b-b9dcb22da748
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=6957ecea-6987-46b8-858b-46c88dd52a66
   //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=75c228ba-d760-4aeb-80a2-249327e8e21d
   //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=75302296-51fa-4d15-a1c1-772232e12944
   //     2024-2: https://www.iucnredlist.org/search?dl=true&permalink=dfd8a856-0567-4ccd-be2c-57c8f9b9843c
+  //     2025-1: https://www.iucnredlist.org/search?dl=true&permalink=063a6746-0229-45eb-89d6-43788990e513
   //   • Passeriformes:
   //     2020-3: https://www.iucnredlist.org/search?dl=true&permalink=4bde9672-b4c3-4cd3-b082-cad5070cc0a0
   //     2021-2: https://www.iucnredlist.org/search?dl=true&permalink=0d602296-1d48-427b-ad5c-71f232b0874b
   //     2021-3: https://www.iucnredlist.org/search?dl=true&permalink=1fad223e-cd64-4430-a0f8-703158e4ea24
   //     2022-1: https://www.iucnredlist.org/search?dl=true&permalink=a5792c2f-2312-4048-b344-5fe2f06fc7ff
   //     2024-2: https://www.iucnredlist.org/search?dl=true&permalink=1b262de2-e7ec-45e4-a9d8-5e7785e1d34d
+  //     2025-1: https://www.iucnredlist.org/search?dl=true&permalink=368b8121-10d8-49fb-8bc4-0a9278d6fa14
   // Then it is downloaded in "Search Results" format.  Splitting the birds in two is necessary
   // to enable use of the "Search Results" format, and splitting everything else into parts is
   // needed to avoid overwhelming the IUCN service — without this, dois.txt is usually blank.
@@ -130,18 +136,19 @@ public class ArchiveBuilder extends AbstractBuilder {
   // Downloads take about 2 hours to complete.
   //
   // Expected total results
-  private static final int EXPECTED_TOTAL = 13233 + 63195 + 27906 + 57067 + 6694;
-  //
+  private static final int EXPECTED_TOTAL = 13955 + 64189 + 28940 + 57717 + 6694;
+
+  // Red List version
+  private static final String VERSION = "2025-1";
+
   // The downloads are stored in a private location in accordance with the IUCN terms and conditions.
   private static final String[] DOWNLOADS = new String[]{
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2024-2/redlist_species_data_5390b1d1-f0e0-42b1-9143-12a2998baae2.zip", // Chromista, Fungi, Plantae except Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2024-2/redlist_species_data_47055b34-6159-45dc-8827-8cb1dc8a94e8.zip", // Magnoliopsida
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2024-2/redlist_species_data_8ff42fb6-1927-42c9-ad67-a2d10c41c369.zip", // Animalia except Chordata
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2024-2/redlist_species_data_5019a05b-ab46-4418-88a8-0f58a6c816f8.zip", // Chordata except Passeriformes
-    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2024-2/redlist_species_data_fcaf5665-b708-4b53-95b5-b44a4df72461.zip"  // Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2025-1/redlist_species_data_0d5680cd-1219-4d4e-ba0a-00257aa1ea72.zip", // Chromista, Fungi, Plantae except Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2025-1/redlist_species_data_6f9c1e7b-067c-4039-9ebc-10927a9bf636.zip", // Magnoliopsida
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2025-1/redlist_species_data_c40b3b2b-6cfb-4074-b58e-b42e7590d1f8.zip", // Animalia except Chordata
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2025-1/redlist_species_data_73742d23-0088-49e8-9fd2-5ef7cfdb0d30.zip", // Chordata except Passeriformes
+    "https://hosted-datasets.gbif.org/datasets/protected/iucn/2025-1/redlist_species_data_0015ea20-00da-45a6-b157-9b14399073af.zip"  // Passeriformes
   };
-
-  private static final String VERSION_URL = "https://apiv3.iucnredlist.org/api/v3/version";
 
   // columns for taxonomy.csv
   private static final int TAX_TAXON_ID = 0;
@@ -229,18 +236,12 @@ public class ArchiveBuilder extends AbstractBuilder {
   private static final int SYN_INFRA_TYPE = 6;
   private static final int SYN_INFRA_RANK_AUTHOR = 7;
 
-  private String version;
-
   public ArchiveBuilder(BuilderConfig cfg) {
     super(DatasetType.CHECKLIST, cfg);
   }
 
   @Override
   protected void parseData() throws Exception {
-    // IUCN Red List version, e.g. 2020-2
-    IucnVersion versionList = http.readJson(VERSION_URL, IucnVersion.class);
-    version = versionList.version;
-
     // Publication date of this checklist
     dataset.setPubDate(new Date());
 
@@ -365,9 +366,12 @@ public class ArchiveBuilder extends AbstractBuilder {
         writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.ACCEPTED);
         writer.addCoreColumn(DwcTerm.acceptedNameUsageID, taxonKey);
         writer.addCoreColumn(DcTerm.bibliographicCitation, citation);
-        writer.addCoreColumn(DcTerm.references, "https://apiv3.iucnredlist.org/api/v3/taxonredirect/" + taxonKey);
+
+        String assessmentId = null;
 
         for (List<String> assessment : assessmentsMap.get(taxonKey)) {
+          assessmentId = assessment.get(ASS_ASSESSMENT_ID);
+
           Map<Term, String> globalDistribution = new HashMap<>();
           globalDistribution.put(DwcTerm.locality, "Global");
           globalDistribution.put(IucnTerm.threatStatus, assessment.get(ASS_REDLIST_CATEGORY).replace("Lower Risk/", ""));
@@ -403,6 +407,7 @@ public class ArchiveBuilder extends AbstractBuilder {
           globalDistribution.put(DcTerm.source, citation);
           writer.addExtensionRecord(GbifTerm.Distribution, globalDistribution);
         }
+        writer.addCoreColumn(DcTerm.references, "https://www.iucnredlist.org/species/" + taxonKey + "/" + assessmentId);
 
         for (List<String> commonName : commonNamesMap.get(taxonKey)) {
           Map<Term, String> vernacularName = new HashMap<>();
@@ -434,7 +439,7 @@ public class ArchiveBuilder extends AbstractBuilder {
           writer.addCoreColumn(DwcTerm.taxonomicStatus, TaxonomicStatus.SYNONYM);
           writer.addCoreColumn(DwcTerm.acceptedNameUsageID, taxonKey);
           writer.addCoreColumn(DcTerm.bibliographicCitation, citation);
-          writer.addCoreColumn(DcTerm.references, "https://apiv3.iucnredlist.org/api/v3/taxonredirect/" + taxonKey);
+          writer.addCoreColumn(DcTerm.references, "https://www.iucnredlist.org/species/" + taxonKey + "/" + assessmentId);
         }
 
         LOG.info("  Taxon {} ({}) with {} synonyms completed.", taxonKey, taxon.get(TAX_SCIENTIFIC_NAME), synonym_index);
@@ -450,14 +455,10 @@ public class ArchiveBuilder extends AbstractBuilder {
     }
   }
 
-  public static class IucnVersion {
-    public String version;
-  }
-
   private String getCitation() {
     return CITATION_FORMAT
-      .replace("{YEAR}", version.substring(0, 4))
-      .replace("{VERSION}", version)
+      .replace("{YEAR}", VERSION.substring(0, 4))
+      .replace("{VERSION}", VERSION)
       .replace("{DL_DATE}", LocalDate.now(ZoneOffset.UTC).toString());
   }
 
@@ -491,7 +492,7 @@ public class ArchiveBuilder extends AbstractBuilder {
   @Override
   protected void addMetadata() {
     dataset.setTitle(TITLE);
-    dataset.setVersion(version);
+    dataset.setVersion(VERSION);
 
     setCitation(getCitation());
     setDescription("iucn/description.txt");
@@ -501,6 +502,17 @@ public class ArchiveBuilder extends AbstractBuilder {
     // Craig: the CC-BY-NC license is appropriate, given the IUCN approves the use of the
     // data on Wikipedia etc, and this is only names plus threat statuses.
     dataset.setLicense(License.CC_BY_NC_4_0);
+
+    Contact iucn = new Contact();
+    iucn.setType(ContactType.ORIGINATOR);
+    iucn.setOrganization(CONTACT_ORG);
+    try {
+      iucn.setHomepage(List.of(new URI("https://www.iucn.org/")));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+    iucn.setLastName(CONTACT_ORG);
+    addContact(iucn);
 
     Contact craig = new Contact();
     craig.setType(ContactType.ADMINISTRATIVE_POINT_OF_CONTACT);
@@ -518,11 +530,21 @@ public class ArchiveBuilder extends AbstractBuilder {
     ackbar.setPosition(Lists.newArrayList("Biodiversity Systems Manager"));
     ackbar.getEmail().add("Ackbar.JOOLIA@iucn.org");
     addContact(ackbar);
+
+    Contact matthew = new Contact();
+    matthew.setType(ContactType.PROGRAMMER);
+    matthew.setOrganization("GBIF");
+    matthew.setFirstName("Matthew");
+    matthew.setLastName("Blissett");
+    matthew.setPosition(Lists.newArrayList("Software Developer"));
+    matthew.getEmail().add("mblissett@gbif.org");
+    matthew.addUserId("https://orcid.org/", "0000-0003-0623-6682");
+    addContact(matthew);
   }
 
   protected void addMetadataProvider() {
     Contact matthew = new Contact();
-    matthew.setType(ContactType.PROGRAMMER);
+    matthew.setType(ContactType.METADATA_AUTHOR);
     matthew.setOrganization("GBIF");
     matthew.setFirstName("Matthew");
     matthew.setLastName("Blissett");

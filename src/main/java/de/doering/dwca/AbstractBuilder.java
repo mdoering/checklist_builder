@@ -18,7 +18,7 @@ import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.Language;
 import org.gbif.dwc.DwcaWriter;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.registry.metadata.EMLWriter;
+import org.gbif.metadata.eml.EMLWriter;
 import org.gbif.utils.file.CompressionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +129,7 @@ public abstract class AbstractBuilder implements Runnable {
       String desc = Resources.toString(Resources.getResource(resourceName), Charsets.UTF_8);
       //TODO: parse paragraphs
       dataset.setDescription(desc);
+
 
     } catch (IOException e) {
       Throwables.propagate(e);
