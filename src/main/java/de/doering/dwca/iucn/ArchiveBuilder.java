@@ -501,7 +501,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     dataset.setLogoUrl(LOGO);
     // Craig: the CC-BY-NC license is appropriate, given the IUCN approves the use of the
     // data on Wikipedia etc, and this is only names plus threat statuses.
-    dataset.setLicense(License.CC_BY_NC_4_0);
+    dataset.setLicense(License.CC_BY_4_0);
 
     Contact iucn = new Contact();
     iucn.setType(ContactType.ORIGINATOR);
