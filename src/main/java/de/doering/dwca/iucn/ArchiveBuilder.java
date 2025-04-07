@@ -499,8 +499,7 @@ public class ArchiveBuilder extends AbstractBuilder {
     dataset.setRights("https://www.iucnredlist.org/terms/terms-of-use");
     dataset.setHomepage(HOMEPAGE);
     dataset.setLogoUrl(LOGO);
-    // Craig: the CC-BY-NC license is appropriate, given the IUCN approves the use of the
-    // data on Wikipedia etc, and this is only names plus threat statuses.
+    // Email 2023-08-01 (Helpdesk), Craig Hilton-Taylor: "The taxonomy and the Red List Categories can be treated as being under a CC BY license"
     dataset.setLicense(License.CC_BY_4_0);
 
     Contact iucn = new Contact();
@@ -522,14 +521,14 @@ public class ArchiveBuilder extends AbstractBuilder {
     craig.getEmail().add("Craig.HILTON-TAYLOR@iucn.org");
     addContact(craig);
 
-    Contact ackbar = new Contact();
-    ackbar.setType(ContactType.TECHNICAL_POINT_OF_CONTACT);
-    ackbar.setOrganization(CONTACT_ORG);
-    ackbar.setFirstName("Ackbar");
-    ackbar.setLastName("Joolia");
-    ackbar.setPosition(Lists.newArrayList("Biodiversity Systems Manager"));
-    ackbar.getEmail().add("Ackbar.JOOLIA@iucn.org");
-    addContact(ackbar);
+    Contact simon = new Contact();
+    simon.setType(ContactType.TECHNICAL_POINT_OF_CONTACT);
+    simon.setOrganization(CONTACT_ORG);
+    simon.setFirstName("Simon");
+    simon.setLastName("Tarr");
+    simon.setPosition(Lists.newArrayList("Biodiversity Systems Manager"));
+    simon.getEmail().add("Simon.TARR@iucn.org");
+    addContact(simon);
 
     Contact matthew = new Contact();
     matthew.setType(ContactType.PROGRAMMER);
